@@ -13,13 +13,14 @@ class AutomationToolGUI:
   def __init__(self, master):
     self.master = master
     master.title("SO Automation Tool")
-    master.geometry("800x600")  # Set a default size
+    # master.geometry("800x600")  # Removed fixed size to allow resizing
 
     # Configure grid for responsiveness
     master.grid_rowconfigure(0, weight=0)
     master.grid_rowconfigure(1, weight=0)
     master.grid_rowconfigure(2, weight=0)  # For the customer message
-    master.grid_rowconfigure(3, weight=1)  # Text area for logs
+    master.grid_rowconfigure(3, weight=0)  # No longer used
+    master.grid_rowconfigure(4, weight=1)  # Text area for logs gets all extra space
     master.grid_columnconfigure(0, weight=1)
     master.grid_columnconfigure(1, weight=1)
 
@@ -44,6 +45,7 @@ class AutomationToolGUI:
     self.customer_combobox.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
     self.customer_combobox.set(self.so_customers[0])  # Set default
     self.customer_combobox.bind("<<ComboboxSelected>>", self.update_customer_message)
+    self.customer_combobox.bind("<Return>", lambda e: self.folder_entry.focus())
 
     # Customer-specific message display
     self.customer_message_var = tk.StringVar()
@@ -76,18 +78,22 @@ class AutomationToolGUI:
       self.folder_frame, textvariable=self.source_folder_path, width=50
     )
     self.folder_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+    self.folder_entry.bind("<Return>", lambda e: self.run_automation())
     self.browse_button = ttk.Button(
       self.folder_frame, text="Browse", command=self.browse_folder
     )
     self.browse_button.grid(row=0, column=2, padx=5, pady=5, sticky="e")
+    self.browse_button.bind("<Return>", lambda e: self.browse_folder())
+    self.browse_button.bind("<space>", lambda e: self.browse_folder())
 
     # --- Run Automation Button ---
     self.run_button = ttk.Button(
       master, text="Run Automation", command=self.run_automation
     )
     self.run_button.grid(
-      row=3, column=0, padx=10, pady=10, sticky="w"
-    )  # Adjusted row to 3
+      row=2, column=2, padx=10, pady=10, sticky="e"
+    )  # Moved to row 2, column 2 (right side of folder frame)
+    self.run_button.bind("<Return>", lambda e: self.run_automation())
 
     # --- Progress and Feedback Display ---
     self.log_frame = ttk.LabelFrame(master, text="Automation Log")
@@ -98,8 +104,8 @@ class AutomationToolGUI:
     self.log_frame.grid_columnconfigure(0, weight=1)
 
     self.log_text = scrolledtext.ScrolledText(
-      self.log_frame, wrap=tk.WORD, width=80, height=20
-    )
+      self.log_frame, wrap=tk.WORD, width=80, height=15
+    )  # Reduced height from 20 to 15 lines
     self.log_text.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
     self.log_text.config(state="disabled")  # Make it read-only
 
@@ -151,12 +157,11 @@ class AutomationToolGUI:
     try:
       self.log_message("Automation started...", "info")
       error = run_customer_automation(customer, folder, self.log_message)
-      if not error:
-        self.log_message("Automation process successfully finished.", "success")
-      else:
-        print(error)
+      if error:
+        self.log_message(f"Automation process failed: {error}", "error")
     except Exception as e:
-      self.log_message(f"Automation failed: {e}", "error")
+      self.log_message(f"An error occurred: {e}", "error")
+      self.log_message("Automation process failed.", "error")
     finally:
       self.master.after(
         100, lambda: self.run_button.config(state="normal")
@@ -167,6 +172,8 @@ def main():
   root = tk.Tk()
   app = AutomationToolGUI(root)
   sv_ttk.set_theme("dark")
+  # Set initial focus and tab order
+  app.customer_combobox.focus_set()
   root.mainloop()
 
 
