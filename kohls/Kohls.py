@@ -1,4 +1,5 @@
 import os
+import win32com.client
 from .pdf_processor_kohls import process_pdf
 from utils import get_df_from_excel, format_number
 from openpyxl import load_workbook
@@ -58,7 +59,6 @@ class Kohls:
     Returns:
         List of SO numbers from the 'SO' column after macro execution
     """
-    import win32com.client
 
     # Open Excel and run macro
     excel = win32com.client.Dispatch("Excel.Application")
