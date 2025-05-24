@@ -1,0 +1,16 @@
+uploads/
+.venv/
+*.xls
+*.xlsm
+*.xlsx
+*.xlsb
+*.pdf
+*.pyc
+.ruff_cache/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
