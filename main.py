@@ -10,10 +10,13 @@ class AutomationGUI:
     def __init__(self):
         ui.dark_mode().enable()
         self.create_layout()
+        ui.query(".nicegui-content").style(
+            "box-sizing: border-box; padding: 1rem; height: 100vh;"
+        )
 
     def create_layout(self):
-        with ui.grid(columns="2fr 2fr").classes("w-full h-full gap-0"):
-            with ui.column().classes("w-full h-full p-4"):
+        with ui.grid(columns="2fr 2fr").classes("w-full h-full"):
+            with ui.column().classes("w-full "):
                 with ui.card().classes(
                     "no-shadow w-full bg-neutral-800 rounded-lg border border-neutral-700"
                 ):
@@ -21,7 +24,9 @@ class AutomationGUI:
                     self.create_customer_info()
                 self.create_select_source_path()
                 self.create_run_automation_button()
-            with ui.column().classes("w-full h-full p-4"):
+            with ui.column().classes(
+                "w-full mb-0 pb-0 h-full overflow-auto box-border"
+            ):
                 self.create_automation_log()
 
     def create_run_automation_button(self):
@@ -58,11 +63,11 @@ class AutomationGUI:
 
     def create_automation_log(self):
         with ui.card().classes(
-            "no-shadow w-full h-full bg-neutral-800 rounded-lg border border-neutral-700"
+            "no-shadow w-full h-full bg-neutral-800 rounded-lg border border-neutral-700 "
         ):
             ui.label("Automation Logs").classes("text-md font-semibold text-gray-200")
             self.log = ui.log().classes(
-                "max-h-full bg-gray-950 border-gray-700 font-mono text-sm resize-none focus:ring-1 focus:ring-blue-500 text-wrap overflow-y-auto"
+                "h-full bg-gray-950 border-gray-700 font-mono rounded-lg text-sm resize-none focus:ring-1 focus:ring-blue-500 text-wrap break-all overflow-y-auto"
             )
             self.logger = Logger(self.log)
 
@@ -158,4 +163,14 @@ class AutomationGUI:
 
 AutomationGUI()
 
-ui.run(native=True, title="🚀 SO Automation Tool", dark=True, window_size=(800, 600))
+app.native.start_args["debug"] = True
+app.native.window_args["resizable"] = True
+app.native.window_args["min_size"] = (800, 528)
+
+ui.run(
+    native=True,
+    favicon="🚀",
+    title="SO Automation Tool",
+    dark=True,
+    window_size=(1024, 650),
+)

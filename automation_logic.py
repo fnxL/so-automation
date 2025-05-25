@@ -8,13 +8,13 @@ def run_customer_automation(customer_name, source_folder, logger: Logger):
     mastersheet = [f for f in os.listdir(source_folder) if "mastersheet" in f.lower()]
     if not mastersheet:
         error_msg = "Error: Mastersheet not found in the given path."
-        logger.error(error_msg, "error")
+        logger.error(error_msg)
         return FileNotFoundError(error_msg)
 
     macro = [f for f in os.listdir(source_folder) if "macro" in f.lower()]
     if not macro:
         error_msg = "Error: Macro file not found in the given path."
-        logger.error(error_msg, "error")
+        logger.error(error_msg)
         return FileNotFoundError(error_msg)
 
     logger.log(f"Using mastersheet: {mastersheet[0]}")
