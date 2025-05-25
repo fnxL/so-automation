@@ -1,17 +1,18 @@
 import os
-import win32com.client
 from .pdf_processor_kohls import process_pdf
 from utils import get_df_from_excel, format_number, format_date
 from config import get_customer_config
 from openpyxl import load_workbook
+from Logger import Logger
 from datetime import datetime
+from run_excel_macro import run_excel_macro
 
 NOTIFY_ADDRESS = """Li & Fung (Trading) Limited\n7/F, HK SPINNERS INDUSTRIAL BUILDING\nPhase I & II,\n800 CHEUNG SHA WAN ROAD,\nKOWLOON, HONGKONG\nAir8 Pte Ltd,\n3 Kallang Junction\n#05-02 Singapore 339266\n 2% commission to WUSA"""
 
 
 class Kohls:
     def __init__(
-        self, source_folder: str, mastersheet_path: str, macro_path: str, logger=None
+        self, source_folder: str, mastersheet_path: str, macro_path: str, logger: Logger
     ):
         self.source_folder = source_folder
         self.macro_path = macro_path
@@ -28,18 +29,15 @@ class Kohls:
         ]
         if not pdf_files:
             warning_msg = f"No PDF files found in source folder: {self.source_folder}"
-            if self.logger:
-                self.logger(warning_msg, "warning")
+            self.logger.warn(warning_msg)
 
-        if self.logger:
-            self.logger(
-                f"Found {len(pdf_files)} PDF files in source folder: {self.source_folder}"
-            )
+        self.logger.info(
+            f"Found {len(pdf_files)} PDF files in source folder: {self.source_folder}"
+        )
 
         for pdf_file in pdf_files:
             pdf_path = os.path.join(self.source_folder, pdf_file)
-            if self.logger:
-                self.logger(f"Processing PDF: {pdf_file}", "info")
+            self.logger.log(f"Processing PDF: {pdf_file}")
             self.create_macro(pdf_path=pdf_path)
 
         macro_filename_with_ext = self.macro_path.split(os.sep)[-1]
@@ -57,12 +55,10 @@ class Kohls:
         self.macro_ws[self.customer_config["source_folder_cell"]] = self.source_folder
         self.macro_wb.save(macro_path)
 
-        if self.logger:
-            self.logger(
-                f"Macro file successfully filled and saved copy to {macro_path}",
-                "success",
-            )
-        self.run_excel_macro(path=macro_path)
+        self.logger.success(
+            f"Macro file successfully filled and saved copy to {macro_path}",
+        )
+        run_excel_macro(path=macro_path, macro_name=self.customer_config["macro_name"])
 
     def create_macro(self, pdf_path):
         po_metadata, line_items = process_pdf(pdf_path=pdf_path)

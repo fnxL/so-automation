@@ -1,188 +1,161 @@
-import tkinter as tk
-from tkinter import ttk, filedialog, scrolledtext
-import os
-import threading
-import sv_ttk
-
-# Backend modules
-from automation_logic import run_customer_automation
+from nicegui import app, ui
 from config import CUSTOMER_CONFIGS, get_customer_config
+from Logger import Logger
+from automation_logic import run_customer_automation
+import webview
+import threading
 
 
-class AutomationToolGUI:
-    def __init__(self, master):
-        self.master = master
-        master.title("SO Automation Tool")
-        # master.geometry("800x600")  # Removed fixed size to allow resizing
+class AutomationGUI:
+    def __init__(self):
+        ui.dark_mode().enable()
+        self.create_layout()
 
-        # Configure grid for responsiveness
-        master.grid_rowconfigure(0, weight=0)
-        master.grid_rowconfigure(1, weight=0)
-        master.grid_rowconfigure(2, weight=0)  # For the customer message
-        master.grid_rowconfigure(3, weight=0)  # No longer used
-        master.grid_rowconfigure(4, weight=1)  # Text area for logs gets all extra space
-        master.grid_columnconfigure(0, weight=1)
-        master.grid_columnconfigure(1, weight=1)
+    def create_layout(self):
+        with ui.grid(columns="2fr 2fr").classes("w-full h-full gap-0"):
+            with ui.column().classes("w-full h-full p-4"):
+                with ui.card().classes(
+                    "no-shadow w-full bg-neutral-800 rounded-lg border border-neutral-700"
+                ):
+                    self.create_customer_select()
+                    self.create_customer_info()
+                self.create_select_source_path()
+                self.create_run_automation_button()
+            with ui.column().classes("w-full h-full p-4"):
+                self.create_automation_log()
 
-        # --- SO Customer Selection ---
-        self.customer_frame = ttk.LabelFrame(master, text="SO Customer Selection")
-        self.customer_frame.grid(
-            row=0, column=0, columnspan=2, padx=10, pady=5, sticky="ew"
+    def create_run_automation_button(self):
+        self.run_automation = ui.button(
+            text="Run Automation",
+            color="bg-green-900",
+            on_click=self._handle_run_automation,
+        ).classes(
+            "w-full bg-green-600 text-white font-semibold rounded-lg px-4 py-2 transition-colors hover:bg-green-700"
         )
-        self.customer_frame.grid_columnconfigure(1, weight=1)
 
-        ttk.Label(self.customer_frame, text="Select Customer:").grid(
-            row=0, column=0, padx=5, pady=5, sticky="w"
+    def create_select_source_path(self):
+        with ui.card().classes(
+            "no-shadow w-full bg-neutral-800 rounded-lg border border-neutral-700"
+        ):
+            with ui.row().classes("items-center justify-between gap-2"):
+                ui.icon("sym_r_folder").classes("text-lg text-green-400")
+                ui.label("Select Source Path").classes(
+                    "text-md font-semibold text-gray-200"
+                )
+            with ui.row().classes("flex items-center gap-2 w-full"):
+                self.source_path_input = (
+                    ui.input()
+                    .classes(
+                        "flex-1 bg-neutral-700 text-gray-200 rounded-xl px-2 py-0 border border-neutral-600 w-[70%]"
+                    )
+                    .props("borderless dense readonly")
+                )
+                self.select_button = ui.button(
+                    "Browse", on_click=self._on_browse_button_click
+                ).classes(
+                    "text-gray-200 font-medium rounded-lg border border-gray-700 transition-colors flex items-center gap-2"
+                )
+
+    def create_automation_log(self):
+        with ui.card().classes(
+            "no-shadow w-full h-full bg-neutral-800 rounded-lg border border-neutral-700"
+        ):
+            ui.label("Automation Logs").classes("text-md font-semibold text-gray-200")
+            self.log = ui.log().classes(
+                "max-h-full bg-gray-950 border-gray-700 font-mono text-sm resize-none focus:ring-1 focus:ring-blue-500 text-wrap overflow-y-auto"
+            )
+            self.logger = Logger(self.log)
+
+    def create_customer_select(self):
+        with ui.row().classes("items-center justify-between gap-2"):
+            ui.icon("sym_r_groups").classes("text-lg text-blue-400")
+            ui.label("Select Customer").classes("text-md font-semibold text-gray-200")
+
+        self.customer_select = (
+            ui.select(
+                options=list(CUSTOMER_CONFIGS.keys()),
+                on_change=self._on_customer_selected,
+            )
+            .classes("w-full bg-neutral-700 text-gray-200 rounded-xl px-2")
+            .props(
+                'borderless transition-show="scale" transition-hide="scale" dense stack-label'
+            )
         )
-        self.so_customer_var = tk.StringVar()
-        self.so_customers = list(
-            CUSTOMER_CONFIGS.keys()
-        )  # Dynamically get customer list
-        self.customer_combobox = ttk.Combobox(
-            self.customer_frame,
-            textvariable=self.so_customer_var,
-            values=self.so_customers,
-            state="readonly",
+
+    def create_customer_info(self):
+        self.info_card = (
+            ui.card()
+            .classes(
+                "no-shadow w-full p-3 bg-stone-800 rounded-lg border border-stone-700"
+            )
+            .bind_visibility_from(self.customer_select, "value")
         )
-        self.customer_combobox.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        self.customer_combobox.set(self.so_customers[0])  # Set default
-        self.customer_combobox.bind(
-            "<<ComboboxSelected>>", self.update_customer_message
+
+        with self.info_card:
+            self.info_label = (
+                ui.textarea(label="Information")
+                .classes("text-sm text-gray-300 leading-relaxed overflow-y-auto w-full")
+                .props("borderless readonly autogrow")
+            )
+
+    def _on_customer_selected(self) -> None:
+        self.current_customer = self.customer_select.value
+        if self.current_customer:
+            self._load_customer_data()
+            self._update_info_display()
+            self.logger.log(f"Selected Customer: {self.current_customer}")
+
+    async def _on_browse_button_click(self):
+        # Logic to open file dialog and set source path
+        files = await app.native.main_window.create_file_dialog(
+            dialog_type=webview.FOLDER_DIALOG, allow_multiple=False
         )
-        self.customer_combobox.bind("<Return>", lambda e: self.folder_entry.focus())
+        if not files:
+            self.logger.warn("Source path selection was cancelled.")
 
-        # Customer-specific message display
-        self.customer_message_var = tk.StringVar()
-        self.customer_message_label = ttk.Label(
-            self.customer_frame,
-            textvariable=self.customer_message_var,
-            wraplength=700,
-            justify=tk.LEFT,
-            foreground="orange",
-        )
-        self.customer_message_label.grid(
-            row=1, column=0, columnspan=2, padx=5, pady=2, sticky="w"
-        )
-        self.update_customer_message()  # Set initial message
+        self.source_path_input.value = files
+        self.source_path_folder = files[0]
+        self.logger.log(f"Selected Source Path: {files[0]}")
 
-        # --- Source Folder Selection ---
-        self.folder_frame = ttk.LabelFrame(
-            master, text="Select path of the folder with required files"
-        )
-        self.folder_frame.grid(
-            row=2, column=0, columnspan=2, padx=10, pady=5, sticky="ew"
-        )  # Adjusted row to 2
-        self.folder_frame.grid_columnconfigure(1, weight=1)
-
-        ttk.Label(self.folder_frame, text="Source Folder:").grid(
-            row=0, column=0, padx=5, pady=5, sticky="w"
-        )
-        self.source_folder_path = tk.StringVar()
-        self.folder_entry = ttk.Entry(
-            self.folder_frame, textvariable=self.source_folder_path, width=50
-        )
-        self.folder_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        self.folder_entry.bind("<Return>", lambda e: self.run_automation())
-        self.browse_button = ttk.Button(
-            self.folder_frame, text="Browse", command=self.browse_folder
-        )
-        self.browse_button.grid(row=0, column=2, padx=5, pady=5, sticky="e")
-        self.browse_button.bind("<Return>", lambda e: self.browse_folder())
-        self.browse_button.bind("<space>", lambda e: self.browse_folder())
-
-        # --- Run Automation Button ---
-        self.run_button = ttk.Button(
-            master, text="Run Automation", command=self.run_automation
-        )
-        self.run_button.grid(
-            row=2, column=2, padx=10, pady=10, sticky="e"
-        )  # Moved to row 2, column 2 (right side of folder frame)
-        self.run_button.bind("<Return>", lambda e: self.run_automation())
-
-        # --- Progress and Feedback Display ---
-        self.log_frame = ttk.LabelFrame(master, text="Automation Log")
-        self.log_frame.grid(
-            row=4, column=0, columnspan=2, padx=10, pady=5, sticky="nsew"
-        )  # Adjusted row to 4
-        self.log_frame.grid_rowconfigure(0, weight=1)
-        self.log_frame.grid_columnconfigure(0, weight=1)
-
-        self.log_text = scrolledtext.ScrolledText(
-            self.log_frame, wrap=tk.WORD, width=80, height=15
-        )  # Reduced height from 20 to 15 lines
-        self.log_text.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        self.log_text.config(state="disabled")  # Make it read-only
-
-        # Configure tags for colored logging
-        self.log_text.tag_config("info", foreground="white")
-        self.log_text.tag_config("success", foreground="green")
-        self.log_text.tag_config("error", foreground="red")
-        self.log_text.tag_config("warning", foreground="yellow")
-
-    def browse_folder(self):
-        folder_selected = filedialog.askdirectory()
-        if folder_selected:
-            self.source_folder_path.set(folder_selected)
-            self.log_message(f"Source folder selected: {folder_selected}", "info")
-
-    def log_message(self, message, message_type="info"):
-        self.log_text.config(state="normal")
-        self.log_text.insert(tk.END, message + "\n", message_type)
-        self.log_text.see(tk.END)  # Auto-scroll to the end
-        self.log_text.config(state="disabled")
-
-    def update_customer_message(self, event=None):
-        selected_customer = self.so_customer_var.get()
-        customer_config = get_customer_config(selected_customer)
-        if customer_config and "display_message" in customer_config:
-            self.customer_message_var.set(customer_config["display_message"])
-        else:
-            self.customer_message_var.set("")
-
-    def run_automation(self):
-        selected_customer = self.so_customer_var.get()
-        source_folder = self.source_folder_path.get()
-
-        if not source_folder or not os.path.isdir(source_folder):
-            self.log_message("Error: Please select a valid source folder.", "error")
+    def _load_customer_data(self):
+        self.customer_config = get_customer_config(self.current_customer)
+        if not self.customer_config:
+            self.logger.error(
+                f"Configuration not found for customer '{self.current_customer}'."
+            )
             return
 
-        self.log_message(
-            f"Initiating automation for customer: {selected_customer}", "info"
+    def _update_info_display(self):
+        message = self.customer_config.get(
+            "display_message", "No information available."
         )
-        self.log_message(f"Source folder: {source_folder}", "info")
-        self.run_button.config(state="disabled")  # Disable button during automation
+        self.info_label.value = message
 
-        # Run automation in a separate thread to keep GUI responsive
-        self.automation_thread = threading.Thread(
-            target=self._perform_automation_task,
-            args=(selected_customer, source_folder),
-        )
-        self.automation_thread.start()
+    def _handle_run_automation(self):
+        if not self.source_path_input.value:
+            self.logger.error(
+                "Please select a source folder path before running automation."
+            )
+            return
 
-    def _perform_automation_task(self, customer, folder):
+        if not self.current_customer:
+            self.logger.error("Please select a customer before running automation.")
+            return
+
         try:
-            self.log_message("Automation started...", "info")
-            error = run_customer_automation(customer, folder, self.log_message)
-            if error:
-                self.log_message(f"Automation process failed: {error}", "error")
+            self.logger.warn(
+                f"Starting automation for customer: {self.current_customer}"
+            )
+            automation_thread = threading.Thread(
+                target=run_customer_automation,
+                args=(self.current_customer, self.source_path_folder, self.logger),
+            )
+            automation_thread.start()
         except Exception as e:
-            self.log_message(f"An error occurred: {e}", "error")
-            self.log_message("Automation process failed.", "error")
-        finally:
-            self.master.after(
-                100, lambda: self.run_button.config(state="normal")
-            )  # Re-enable button in main thread
+            self.logger.error(f"An error occurred while running automation: {e}")
+            return
 
 
-def main():
-    root = tk.Tk()
-    app = AutomationToolGUI(root)
-    sv_ttk.set_theme("dark")
-    # Set initial focus and tab order
-    app.customer_combobox.focus_set()
-    root.mainloop()
+AutomationGUI()
 
-
-if __name__ == "__main__":
-    main()
+ui.run(native=True, title="🚀 SO Automation Tool", dark=True, window_size=(800, 600))
