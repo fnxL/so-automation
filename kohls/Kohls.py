@@ -5,7 +5,7 @@ from config import get_customer_config
 from openpyxl import load_workbook
 from Logger import Logger
 from datetime import datetime
-from run_excel_macro import run_excel_macro
+from MacroRunner import MacroRunner
 
 NOTIFY_ADDRESS = """Li & Fung (Trading) Limited\n7/F, HK SPINNERS INDUSTRIAL BUILDING\nPhase I & II,\n800 CHEUNG SHA WAN ROAD,\nKOWLOON, HONGKONG\nAir8 Pte Ltd,\n3 Kallang Junction\n#05-02 Singapore 339266\n 2% commission to WUSA"""
 
@@ -58,7 +58,11 @@ class Kohls:
         self.logger.success(
             f"Macro file successfully filled and saved copy to {macro_path}",
         )
-        run_excel_macro(path=macro_path, macro_name=self.customer_config["macro_name"])
+        MacroRunner(
+            macro_path=macro_path,
+            macro_name=self.customer_config["macro_name"],
+            logger=self.logger,
+        ).run()
 
     def create_macro(self, pdf_path):
         po_metadata, line_items = process_pdf(pdf_path=pdf_path)
