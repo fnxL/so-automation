@@ -1,11 +1,10 @@
-import win32com.client
 import win32clipboard
 import time
 import os
-import pandas as pd
 from datetime import datetime
 from Logger import Logger
-from utils import get_df_from_excel, create_thread, PywinUtils
+from utils import get_df_from_excel
+from SAPUtils import SAPUtils
 
 
 class SAPDispatchReport:
@@ -13,47 +12,11 @@ class SAPDispatchReport:
         self.macro_path = macro_path
         self.logger = logger
         self.source_folder = os.path.dirname(macro_path)
-        print(self.source_folder)
+        self.session = SAPUtils.connect_to_sap(logger)
 
     def run(self):
-        sap_alert_thread = create_thread(
-            target=PywinUtils.handle_sap_scripting_alert, args=(self.logger)
-        )
-        self._connect_to_sap()
         reports = self._download_dispatch_reports()
-
-        sap_alert_thread.join(timeout=10)
         return reports
-
-    def _connect_to_sap(self):
-        try:
-            sap_gui = win32com.client.GetObject("SAPGUI")
-            if not sap_gui:
-                self.logger.error("SAP GUI is not running.")
-                raise Exception("SAP GUI is not running.")
-
-            self.logger.success("Connected to SAP GUI successfully.")
-
-            application = sap_gui.GetScriptingEngine
-            if not application:
-                self.logger.error("Failed to get SAP scripting engine.")
-                raise Exception("Failed to get SAP scripting engine.")
-
-            connection = application.Children(0)
-            if not connection:
-                self.logger.error("No active SAP connection found.")
-                raise Exception("No active SAP connection found.")
-
-            session = connection.Children(0)
-            if not session:
-                self.logger.error("No active SAP session found.")
-                raise Exception("No active SAP session found.")
-
-            self.logger.success("Connected to SAP session successfully.")
-            self.session = session
-        except Exception as e:
-            self.logger.error(f"Error connecting to SAP: {e}")
-            raise e
 
     def _download_dispatch_reports(self):
         so_list = self._get_so_list()
@@ -87,7 +50,7 @@ class SAPDispatchReport:
             self.session.findById("wnd[0]/tbar[0]/btn[3]").press()
 
             file_path = os.path.join(self.source_folder, file_name)
-            result.append(file_name)
+            result.append(file_path)
         return result
 
     def _copy_list_to_clipboard(self, so_list):

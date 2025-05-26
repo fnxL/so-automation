@@ -1,16 +1,8 @@
-import win32com.client
-import threading
 from Logger import Logger
 import pandas as pd
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.styles import NamedStyle
 from pywinauto import Application
-
-
-def create_thread(target, args):
-    thread = threading.Thread(target=target, args=args)
-    thread.start()
-    return thread
 
 
 class PywinUtils:
@@ -27,18 +19,6 @@ class PywinUtils:
             raise e
 
     @staticmethod
-    def handle_sap_scripting_alert(logger: Logger):
-        try:
-            app = Application().connect(title_re="SAP Easy Access.*")
-            alert = app.window(title="SAP Logon", class_name="#32770")
-            alert.wait("exists", timeout=50000)
-            alert["OK"].click()
-            logger.log("SAP GUI Scripting alert handled successfully.")
-        except Exception as e:
-            logger.error(f"Failed to handle SAP alert: {e}")
-            raise
-
-    @staticmethod
     def handle_excel_macro_errors(logger: Logger):
         try:
             app = Application().connect(title_re=".*Excel", class_name="XLMAIN")
@@ -49,7 +29,7 @@ class PywinUtils:
             logger.error(f"Macro Error: {error_description}")
             return
         except Exception as e:
-            logger.error(f"Failed to handle Excel macro error: {e}")
+            logger.error(f"Failed to handle excel macro error dialog: {e}")
             raise e
 
 

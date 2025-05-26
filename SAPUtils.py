@@ -1,0 +1,59 @@
+import win32com.client
+import threading
+from Logger import Logger
+from pywinauto import Application
+
+
+class SAPUtils:
+    @staticmethod
+    def connect_to_sap(logger: Logger):
+        sap_alert_thread = threading.Thread(
+            target=SAPUtils.handle_sap_scripting_alert, args=(logger,)
+        )
+        sap_alert_thread.start()
+
+        try:
+            sap_gui = win32com.client.GetObject("SAPGUI")
+            if not sap_gui:
+                logger.error("SAP GUI is not running.")
+                raise Exception("SAP GUI is not running.")
+
+            logger.success("Connected to SAP GUI successfully.")
+
+            application = sap_gui.GetScriptingEngine
+            if not application:
+                logger.error("Failed to get SAP scripting engine.")
+                raise Exception("Failed to get SAP scripting engine.")
+
+            connection = application.Children(0)
+            if not connection:
+                logger.error("No active SAP connection found.")
+                raise Exception("No active SAP connection found.")
+
+            session = connection.Children(0)
+            if not session:
+                logger.error("No active SAP session found.")
+                raise Exception("No active SAP session found.")
+
+            logger.success("Connected to SAP session successfully.")
+
+            sap_alert_thread.join(timeout=10)
+            return session
+        except Exception as e:
+            logger.error(f"Error connecting to SAP: {e}")
+            raise e
+
+    @staticmethod
+    def handle_sap_scripting_alert(logger: Logger):
+        try:
+            app = Application().connect(title_re="SAP Easy Access.*")
+            alert = app.window(title="SAP Logon", class_name="#32770")
+            alert.wait("exists", timeout=50000)
+            alert["OK"].click()
+            logger.log("SAP GUI Scripting alert handled successfully.")
+        except Exception as e:
+            logger.error(f"Error connecting to SAP GUI Window: {e}")
+            logger.warn(
+                "Ensure SAP GUI window is opened and logged in with your credentials."
+            )
+            raise e

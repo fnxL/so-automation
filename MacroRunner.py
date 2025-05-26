@@ -1,8 +1,8 @@
-from pywinauto import Application
-import threading
 import win32com.client
+import threading
 from Logger import Logger
-from utils import PywinUtils, create_thread
+from utils import PywinUtils
+from SAPUtils import SAPUtils
 
 
 class MacroRunner:
@@ -31,19 +31,23 @@ class MacroRunner:
             self.logger.log(f"Running Macro: {self.macro_name}")
 
             # Create different threads here
-            macro_error_thread = create_thread(
-                target=self.handle_excel_macro_errors, args=(self.logger)
+            macro_error_thread = threading.Thread(
+                target=PywinUtils.handle_excel_macro_errors, args=(self.logger,)
             )
-            sap_alert_thread = create_thread(
-                target=PywinUtils.handle_sap_scripting_alert, args=(self.logger)
+            macro_error_thread.start()
+
+            sap_alert_thread = threading.Thread(
+                target=SAPUtils.handle_sap_scripting_alert, args=(self.logger,)
             )
+            sap_alert_thread.start()
 
             excel.Application.Run(self.macro_name)
             self.logger.success(f"Macro {self.macro_name} ran successfully.")
 
         except Exception as e:
-            self.logger.error(f"Error running macro: {e}")
+            self.logger.error(f"Macro Error: {e}")
             raise e
+
         finally:
             # Clean up
             excel.DisplayAlerts = False
@@ -54,16 +58,3 @@ class MacroRunner:
             # Join threads here
             macro_error_thread.join(timeout=10)
             sap_alert_thread.join(timeout=10)
-
-    def handle_excel_macro_errors(self):
-        try:
-            app = Application().connect(title_re=".*Excel", class_name="XLMAIN")
-            dlg = app.window(title_re=".*Visual Basic", class_name="#32770")
-            dlg.wait("exists", timeout=50000)
-            error_description = dlg["Static"].texts()[0]
-            dlg["End"].click()
-            self.logger.error(f"Macro Error: {error_description}")
-            return
-        except Exception as e:
-            self.logger.error(f"Failed to handle Excel macro error: {e}")
-            raise e
