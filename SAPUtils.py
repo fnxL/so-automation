@@ -50,10 +50,10 @@ class SAPUtils:
             alert = app.window(title="SAP Logon", class_name="#32770")
             alert.wait("exists", timeout=50000)
             alert["OK"].click()
-            logger.log("SAP GUI Scripting alert handled successfully.")
+            logger.info("SAP GUI Scripting alert handled successfully.")
         except Exception as e:
             logger.error(f"Error connecting to SAP GUI Window: {e}")
-            logger.warn(
+            logger.warning(
                 "Ensure SAP GUI window is opened and logged in with your credentials."
             )
             raise e

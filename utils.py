@@ -13,7 +13,7 @@ class PywinUtils:
             dlg = app.window(title_re=window_title, class_name="#32770")
             dlg.wait("exists", timeout=50000)
             dlg[ctrl].click()
-            logger.log(f"{window_title} dialog handled successfully.")
+            logger.info(f"{window_title} dialog handled successfully.")
         except Exception as e:
             logger.error(f"Failed to handle dialog {window_title}: {e}")
             raise e

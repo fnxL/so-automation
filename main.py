@@ -70,7 +70,7 @@ class AutomationGUI:
             self.log = ui.log(max_lines=100).classes(
                 "h-full bg-gray-950 border-gray-700 font-mono rounded-lg text-sm resize-none focus:ring-1 focus:ring-blue-500 text-wrap break-all overflow-y-auto"
             )
-            self.logger = Logger(self.log)
+            self.logger = Logger(self.log).get_logger()
 
     def create_customer_select(self):
         with (
@@ -114,18 +114,18 @@ class AutomationGUI:
         if self.current_customer:
             self._load_customer_data()
             self._update_info_display()
-            self.logger.log(f"Selected Customer: {self.current_customer}")
+            self.logger.info(f"Selected Customer: {self.current_customer}")
 
     async def _on_browse_button_click(self):
         files = await app.native.main_window.create_file_dialog(
             dialog_type=webview.FOLDER_DIALOG, allow_multiple=False
         )
         if not files:
-            self.logger.warn("Source path selection was cancelled.")
+            self.logger.warning("Source path selection was cancelled.")
 
         self.source_path_input.value = files
         self.source_path_folder = files[0]
-        self.logger.log(f"Selected Source Path: {files[0]}")
+        self.logger.info(f"Selected Source Path: {files[0]}")
 
     def _load_customer_data(self):
         self.customer_config = CUSTOMER_CONFIGS.get(self.current_customer)
@@ -153,7 +153,7 @@ class AutomationGUI:
             return
 
         try:
-            self.logger.warn(
+            self.logger.warning(
                 f"Starting automation for customer: {self.current_customer}"
             )
             automation_thread = threading.Thread(

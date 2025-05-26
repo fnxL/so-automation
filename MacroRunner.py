@@ -19,7 +19,7 @@ class MacroRunner:
             excel = win32com.client.Dispatch("Excel.Application")
             excel.Visible = True
 
-            self.logger.log(
+            self.logger.info(
                 f"Excel started successfully, opening workbook: {self.macro_path}"
             )
             workbook = excel.Workbooks.Open(self.macro_path)
@@ -28,7 +28,7 @@ class MacroRunner:
             raise e
 
         try:
-            self.logger.log(f"Running Macro: {self.macro_name}")
+            self.logger.info(f"Running Macro: {self.macro_name}")
 
             # Create different threads here
             macro_error_thread = threading.Thread(
@@ -53,7 +53,7 @@ class MacroRunner:
             excel.DisplayAlerts = False
             workbook.Close(SaveChanges=True)
             excel.Quit()
-            self.logger.log("Excel closed successfully.")
+            self.logger.info("Excel closed successfully.")
 
             # Join threads here
             macro_error_thread.join(timeout=10)

@@ -1,46 +1,50 @@
-from datetime import datetime
+from loguru import logger
+import sys
 
 
 class Logger:
-    def __init__(self, log_widget=None, disable=False):
-        self.log_widget = log_widget
-        self.disable = disable
-
-    def log(self, message):
-        if self.disable:
-            return
-        timestamp = datetime.now().strftime("%I:%M %p")
-        self.log_widget.push(f"{timestamp} {message}")
-        print(f"{timestamp} {message}")
-
-    def info(self, message):
-        if self.disable:
-            return
-        timestamp = datetime.now().strftime("%I:%M %p")
-        self.log_widget.push(f"{timestamp} {message}", classes="text-blue-400")
-        print(f"{timestamp} [INFO] {message}")
-
-    def warn(self, message):
-        if self.disable:
-            return
-        timestamp = datetime.now().strftime("%I:%M %p")
-        self.log_widget.push(
-            f"{timestamp} [WARNING] {message}", classes="text-orange-400"
+    def __init__(self, log_widget=None):
+        self.logger = logger.bind(name="Logger")
+        self.logger.remove()
+        self.logger.add(
+            sys.stdout,
+            format="<level>{time:%I:%M %p} [{level.name}]</level> {message}",
+            level="INFO",
+            colorize=True,
         )
-        print(f"{timestamp} [WARNING] {message}")
 
-    def error(self, message):
-        if self.disable:
-            return
-        timestamp = datetime.now().strftime("%I:%M %p")
-        self.log_widget.push(f"{timestamp} [ERROR] {message}", classes="text-red-400")
-        print(f"{timestamp} [ERROR] {message}")
+        if log_widget:
+            self.log_widget = log_widget
+            self.logger.add(
+                self._loguru_sink_to_widget,
+                format="{message}",
+                level="INFO",
+                colorize=False,
+            )
 
-    def success(self, message):
-        if self.disable:
-            return
-        timestamp = datetime.now().strftime("%I:%M %p")
+    def get_logger(self):
+        return self.logger
+
+    def _loguru_sink_to_widget(self, message):
+        record = message.record
+        level_name = record["level"].name
+        timestamp = record["time"].strftime("%I:%M %p")
+        formatted_message = record["message"]
+        classes = ""
+        prefix = ""
+
+        if level_name == "INFO":
+            prefix = "[INFO] "
+        elif level_name == "WARNING":
+            classes = "text-orange-400"
+            prefix = "[WARNING] "
+        elif level_name == "ERROR":
+            classes = "text-red-400"
+            prefix = "[ERROR] "
+        elif level_name == "SUCCESS":
+            classes = "text-green-400"
+            prefix = "[SUCCESS] "
+
         self.log_widget.push(
-            f"{timestamp} [SUCCESS] {message}", classes="text-green-400"
+            f"{timestamp} {prefix}{formatted_message}".strip(), classes=classes
         )
-        print(f"{timestamp} [SUCCESS] {message}")

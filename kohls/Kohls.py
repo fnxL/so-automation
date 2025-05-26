@@ -88,7 +88,7 @@ class KohlsMacroGenerator(BaseMacroGenerator):
             logger=self.logger,
         ).run()
 
-        self.logger.log("Downloading SAP Dispatch Reports...")
+        self.logger.info("Downloading SAP Dispatch Reports...")
 
         reports = SAPDispatchReport(macro_path=macro_path, logger=self.logger).run()
 
@@ -96,7 +96,7 @@ class KohlsMacroGenerator(BaseMacroGenerator):
             f"{len(reports)} SAP Dispatch Reports downloaded successfully."
         )
 
-        self.logger.log("Creating draft email with SAP Dispatch Reports...")
+        self.logger.info("Creating draft email with SAP Dispatch Reports...")
 
     def _parse_po_metadata(self, po_metadata: dict) -> POData:
         ship_start_date = self._format_ship_date(po_metadata["ship_start_date"])
@@ -250,13 +250,13 @@ class KohlsMacroGenerator(BaseMacroGenerator):
 
     def _process_single_po(self, pdf_file: str):
         pdf_path = os.path.join(self.source_folder, pdf_file)
-        self.logger.log(f"Processing PDF: {pdf_file}")
+        self.logger.info(f"Processing PDF: {pdf_file}")
 
         po_metadata, line_items = process_pdf(pdf_path=pdf_path)
         po_data = self._parse_po_metadata(po_metadata)
         row_data = self._prepare_row_data(po_data, line_items)
-        self.logger.log("Parsed PO File")
-        self.logger.log("Writing data to macro worksheet...")
+        self.logger.info("Parsed PO File")
+        self.logger.info("Writing data to macro worksheet...")
         self._write_rows_to_worksheet(row_data)
 
     def _write_rows_to_worksheet(self, row_data):

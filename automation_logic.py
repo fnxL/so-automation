@@ -19,9 +19,9 @@ def run_customer_automation(
         logger.error(error_msg)
         return FileNotFoundError(error_msg)
 
-    logger.log(f"Using mastersheet: {mastersheet[0]}")
-    logger.log(f"Using macro template: {macro[0]}")
-    logger.log(f"Processing: {mastersheet[0]}")
+    logger.info(f"Using mastersheet: {mastersheet[0]}")
+    logger.info(f"Using macro template: {macro[0]}")
+    logger.info(f"Processing: {mastersheet[0]}")
 
     mastersheet_path = os.path.join(source_folder, mastersheet[0])
     macro_path = os.path.join(source_folder, macro[0])
