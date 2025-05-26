@@ -9,6 +9,7 @@ from .pdf_processor_kohls import process_pdf
 from config import get_customer_config
 from Logger import Logger
 from MacroRunner import MacroRunner
+from SAPDispatchReport import SAPDispatchReport
 from utils import get_df_from_excel, format_number, format_date
 
 
@@ -80,6 +81,12 @@ class KohlsMacroGenerator(BaseMacroGenerator):
             macro_name=self.customer_config["macro_name"],
             logger=self.logger,
         ).run()
+
+        self.logger.log("Downloading SAP Dispatch Reports...")
+
+        reports = SAPDispatchReport(macro_path=macro_path, logger=self.logger).run()
+
+        self.logger.success(f"SAP Dispatch Reports downloaded successfully. {reports}")
 
     def _parse_po_metadata(self, po_metadata: dict) -> POData:
         ship_start_date = self._format_ship_date(po_metadata["ship_start_date"])
