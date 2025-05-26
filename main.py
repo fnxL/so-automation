@@ -181,5 +181,6 @@ ui.run(
     native=True,
     title="🚀 SO Automation Tool",
     dark=True,
+    reload=False,
     window_size=(1024, 650),
 )
