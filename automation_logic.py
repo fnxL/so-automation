@@ -1,6 +1,6 @@
 # automation_logic.py
 import os
-from kohls.Kohls import Kohls
+from kohls.Kohls import KohlsMacroGenerator
 from Logger import Logger
 
 
@@ -25,9 +25,10 @@ def run_customer_automation(customer_name, source_folder, logger: Logger):
     macro_path = os.path.join(source_folder, macro[0])
 
     if "kohls" in customer_name.lower():
-        Kohls(
+        KohlsMacroGenerator(
             source_folder=source_folder,
             macro_path=macro_path,
             mastersheet_path=mastersheet_path,
             logger=logger,
+            customer_name=customer_name
         ).start()

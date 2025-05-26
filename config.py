@@ -4,6 +4,7 @@ CUSTOMER_CONFIGS = {
         "macro_name": "vtowels",
         "source_folder_cell": "AK1",
         "design_split": ["abstract", "medal", "stripe"],
+        "notify_address": "Li & Fung (Trading) Limited\n7/F, HK SPINNERS INDUSTRIAL BUILDING\nPhase I & II,\n800 CHEUNG SHA WAN ROAD,\nKOWLOON, HONGKONG\nAir8 Pte Ltd,\n3 Kallang Junction\n#05-02 Singapore 339266\n 2% commission to WUSA",
     },
     "Kohls Rugs": {
         "display_message": "Test",
