@@ -18,10 +18,3 @@ CUSTOMER_CONFIGS = {
         "design_split": ["abstract", "medal", "stripe"],
     },
 }
-
-
-def get_customer_config(customer_name):
-    """
-    Retrieves the configuration for a specific SO Customer.
-    """
-    return CUSTOMER_CONFIGS.get(customer_name)

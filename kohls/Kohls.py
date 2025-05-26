@@ -6,7 +6,7 @@ from typing import List, Tuple
 from openpyxl import load_workbook
 
 from .pdf_processor_kohls import process_pdf
-from config import get_customer_config
+from config import CUSTOMER_CONFIGS
 from Logger import Logger
 from MacroRunner import MacroRunner
 from SAPDispatchReport import SAPDispatchReport
@@ -62,7 +62,8 @@ class KohlsMacroGenerator(BaseMacroGenerator):
     ):
         super().__init__(source_folder, mastersheet_path, macro_path)
         self.logger = logger
-        self.customer_config = get_customer_config(customer_name)
+        self.stopAfterMacro = stopAfterMacro
+        self.customer_config = CUSTOMER_CONFIGS.get(customer_name)
         self.pis_df = get_df_from_excel(path=mastersheet_path, sheet_name="PIS")
 
     def start(self):

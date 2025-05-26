@@ -1,5 +1,5 @@
 from nicegui import app, ui
-from config import CUSTOMER_CONFIGS, get_customer_config
+from config import CUSTOMER_CONFIGS
 from Logger import Logger
 from automation_logic import run_customer_automation
 import webview
@@ -116,7 +116,6 @@ class AutomationGUI:
             self.logger.log(f"Selected Customer: {self.current_customer}")
 
     async def _on_browse_button_click(self):
-        # Logic to open file dialog and set source path
         files = await app.native.main_window.create_file_dialog(
             dialog_type=webview.FOLDER_DIALOG, allow_multiple=False
         )
@@ -128,7 +127,7 @@ class AutomationGUI:
         self.logger.log(f"Selected Source Path: {files[0]}")
 
     def _load_customer_data(self):
-        self.customer_config = get_customer_config(self.current_customer)
+        self.customer_config = CUSTOMER_CONFIGS.get(self.current_customer)
         if not self.customer_config:
             self.logger.error(
                 f"Configuration not found for customer '{self.current_customer}'."
@@ -171,16 +170,16 @@ class AutomationGUI:
             return
 
 
-AutomationGUI()
+if __name__ == "__main__":
+    AutomationGUI()
 
-app.native.start_args["debug"] = True
-app.native.window_args["resizable"] = True
-app.native.window_args["min_size"] = (800, 528)
+    app.native.start_args["debug"] = True
+    app.native.window_args["resizable"] = True
+    app.native.window_args["min_size"] = (800, 528)
 
-ui.run(
-    native=True,
-    favicon="🚀",
-    title="SO Automation Tool",
-    dark=True,
-    window_size=(1024, 650),
-)
+    ui.run(
+        native=True,
+        title="🚀 SO Automation Tool",
+        dark=True,
+        window_size=(1024, 650),
+    )
