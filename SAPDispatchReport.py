@@ -13,6 +13,7 @@ class SAPDispatchReport:
         self.macro_path = macro_path
         self.logger = logger
         self.source_folder = os.path.dirname(macro_path)
+        print(self.source_folder)
 
     def run(self):
         self._connect_to_sap()
@@ -28,7 +29,7 @@ class SAPDispatchReport:
 
             self.logger.success("Connected to SAP GUI successfully.")
 
-            application = sap_gui.GetScriptingEngine()
+            application = sap_gui.GetScriptingEngine
             if not application:
                 self.logger.error("Failed to get SAP scripting engine.")
                 raise Exception("Failed to get SAP scripting engine.")
@@ -52,8 +53,10 @@ class SAPDispatchReport:
     def _download_dispatch_reports(self):
         so_list = self._get_so_list()
         result = []
+        print(so_list)
         for plant in so_list.keys():
             self._copy_list_to_clipboard(so_list[plant])
+            time.sleep(3)
             timestamp = datetime.now().strftime("%Y.%m.%d")
             file_name = os.path.join(
                 self.source_folder, f"DispatchReport_{plant}_{timestamp}.xlsx"
@@ -62,24 +65,26 @@ class SAPDispatchReport:
             self.session.findById("wnd[0]/tbar[0]/okcd").text = "zsddr"
             self.session.findById("wnd[0]").sendVKey(0)
             self.session.findById("wnd[0]/usr/ctxtS_WERKS").text = str(plant)
-            self.session.findById("wnd[0]/usr/btn%_S_VBELN_%_APP_%-VALU_PUSH").press
-            self.session.findById("wnd[1]/tbar[0]/btn[24]").press
-            self.session.findById("wnd[1]/tbar[0]/btn[8]").press
-            self.session.findById("wnd[0]/tbar[1]/btn[8]").press
-            self.session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").contextMenu
-            self.session.findById(
-                "wnd[0]/usr/cntlGRID1/shellcont/shell"
-            ).selectContextMenuItem = "&XXL"
-            self.session.findById("wnd[1]/tbar[0]/btn[0]").press
+            self.session.findById("wnd[0]/usr/ctxtS_WERKS").caretPosition = 4
+            self.session.findById("wnd[0]/usr/btn%_S_VBELN_%_APP_%-VALU_PUSH").press()
+            self._copy_list_to_clipboard(so_list[plant])
+            self.session.findById("wnd[1]/tbar[0]/btn[24]").press()
+            self.session.findById("wnd[1]/tbar[0]/btn[8]").press()
+            self.session.findById("wnd[0]/tbar[1]/btn[8]").press()
+            shell = self.session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell")
+            shell.contextMenu()
+            shell.selectContextMenuItem("&XXL")
+            self.session.findById("wnd[1]/tbar[0]/btn[0]").press()
             self.session.findById("wnd[1]/usr/ctxtDY_PATH").text = self.source_folder
             self.session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = file_name
-            self.session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 15
-            self.session.findById("wnd[1]/tbar[0]/btn[0]").press
+            self.session.findById("wnd[1]/tbar[0]/btn[0]").press()
+            self.session.findById("wnd[0]/tbar[0]/btn[3]").press()
+            self.session.findById("wnd[0]/tbar[0]/btn[3]").press()
             result.append(file_name)
         return result
 
     def _copy_list_to_clipboard(self, so_list):
-        text = "\n".join(map(str, so_list))
+        text = "\r\n".join(map(str, so_list))
         win32clipboard.OpenClipboard()
         win32clipboard.EmptyClipboard()
         win32clipboard.SetClipboardText(text)
