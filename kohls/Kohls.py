@@ -58,6 +58,7 @@ class KohlsMacroGenerator(BaseMacroGenerator):
         macro_path: str,
         customer_name: str,
         logger: Logger,
+        stopAfterMacro: bool = False,
     ):
         super().__init__(source_folder, mastersheet_path, macro_path)
         self.logger = logger
@@ -75,6 +76,10 @@ class KohlsMacroGenerator(BaseMacroGenerator):
             self._process_single_po(pdf_file)
 
         macro_path = self._finalize_macro_file()
+
+        if self.stopAfterMacro:
+            self.logger.success("Macro file created successfully. Stopping here.")
+            return
 
         MacroRunner(
             macro_path=macro_path,

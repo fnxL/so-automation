@@ -4,7 +4,9 @@ from kohls.Kohls import KohlsMacroGenerator
 from Logger import Logger
 
 
-def run_customer_automation(customer_name, source_folder, logger: Logger):
+def run_customer_automation(
+    customer_name, source_folder, logger: Logger, stopAfterMacro: bool = False
+):
     mastersheet = [f for f in os.listdir(source_folder) if "mastersheet" in f.lower()]
     if not mastersheet:
         error_msg = "Error: Mastersheet not found in the given path."
@@ -30,5 +32,6 @@ def run_customer_automation(customer_name, source_folder, logger: Logger):
             macro_path=macro_path,
             mastersheet_path=mastersheet_path,
             logger=logger,
-            customer_name=customer_name
+            customer_name=customer_name,
+            stopAfterMacro=stopAfterMacro,
         ).start()

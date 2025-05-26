@@ -16,12 +16,11 @@ class AutomationGUI:
 
     def create_layout(self):
         with ui.grid(columns="2fr 2fr").classes("w-full h-full"):
-            with ui.column().classes("w-full "):
+            with ui.column().classes("w-full"):
                 with ui.card().classes(
                     "no-shadow w-full bg-neutral-800 rounded-lg border border-neutral-700"
                 ):
                     self.create_customer_select()
-                    self.create_customer_info()
                 self.create_select_source_path()
                 self.create_run_automation_button()
             with ui.column().classes(
@@ -60,6 +59,7 @@ class AutomationGUI:
                 ).classes(
                     "text-gray-200 font-medium rounded-lg border border-gray-700 transition-colors flex items-center gap-2"
                 )
+            self.checkbox = ui.checkbox(text="Stop after creating macro sheet")
 
     def create_automation_log(self):
         with ui.card().classes(
@@ -72,9 +72,30 @@ class AutomationGUI:
             self.logger = Logger(self.log)
 
     def create_customer_select(self):
-        with ui.row().classes("items-center justify-between gap-2"):
+        with (
+            ui.dialog() as dialog,
+            ui.card().classes(
+                "no-shadow w-full p-3 bg-stone-800 rounded-lg border border-stone-700"
+            ),
+        ):
+            self.info_label = (
+                ui.textarea(
+                    label="Information", value="Select a customer to see information."
+                )
+                .classes("text-sm text-gray-300 leading-relaxed overflow-y-auto w-full")
+                .props("borderless readonly autogrow")
+            )
+            ui.button("Close", on_click=dialog.close)
+
+        with ui.row().classes("flex items-center w-full justify-between gap-2"):
             ui.icon("sym_r_groups").classes("text-lg text-blue-400")
-            ui.label("Select Customer").classes("text-md font-semibold text-gray-200")
+            ui.label("Select Customer").classes(
+                "flex-1 text-md font-semibold text-gray-200"
+            )
+            with ui.button(icon="info", on_click=dialog.open).classes(
+                "h-0 w-5 text-sm border rounded-xl bg-transparent text-gray-200"
+            ):
+                ui.tooltip("Customer Information").classes("text-xs")
 
         self.customer_select = (
             ui.select(
@@ -86,22 +107,6 @@ class AutomationGUI:
                 'borderless transition-show="scale" transition-hide="scale" dense stack-label'
             )
         )
-
-    def create_customer_info(self):
-        self.info_card = (
-            ui.card()
-            .classes(
-                "no-shadow w-full p-3 bg-stone-800 rounded-lg border border-stone-700"
-            )
-            .bind_visibility_from(self.customer_select, "value")
-        )
-
-        with self.info_card:
-            self.info_label = (
-                ui.textarea(label="Information")
-                .classes("text-sm text-gray-300 leading-relaxed overflow-y-auto w-full")
-                .props("borderless readonly autogrow")
-            )
 
     def _on_customer_selected(self) -> None:
         self.current_customer = self.customer_select.value
@@ -153,7 +158,12 @@ class AutomationGUI:
             )
             automation_thread = threading.Thread(
                 target=run_customer_automation,
-                args=(self.current_customer, self.source_path_folder, self.logger),
+                args=(
+                    self.current_customer,
+                    self.source_path_folder,
+                    self.logger,
+                    self.checkbox.value,
+                ),
             )
             automation_thread.start()
         except Exception as e:
