@@ -92,7 +92,11 @@ class KohlsMacroGenerator(BaseMacroGenerator):
 
         reports = SAPDispatchReport(macro_path=macro_path, logger=self.logger).run()
 
-        self.logger.success(f"SAP Dispatch Reports downloaded successfully. {reports}")
+        self.logger.success(
+            f"{len(reports)} SAP Dispatch Reports downloaded successfully."
+        )
+
+        self.logger.log("Creating draft email with SAP Dispatch Reports...")
 
     def _parse_po_metadata(self, po_metadata: dict) -> POData:
         ship_start_date = self._format_ship_date(po_metadata["ship_start_date"])

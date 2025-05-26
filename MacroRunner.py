@@ -2,6 +2,7 @@ from pywinauto import Application
 import threading
 import win32com.client
 from Logger import Logger
+from utils import PywinUtils, create_thread
 
 
 class MacroRunner:
@@ -30,11 +31,12 @@ class MacroRunner:
             self.logger.log(f"Running Macro: {self.macro_name}")
 
             # Create different threads here
-            error_thread = threading.Thread(target=self.handle_excel_macro_errors)
-            error_thread.start()
-
-            sap_alert_thread = threading.Thread(target=self.handle_sap_alert)
-            sap_alert_thread.start()
+            macro_error_thread = create_thread(
+                target=self.handle_excel_macro_errors, args=(self.logger)
+            )
+            sap_alert_thread = create_thread(
+                target=PywinUtils.handle_sap_scripting_alert, args=(self.logger)
+            )
 
             excel.Application.Run(self.macro_name)
             self.logger.success(f"Macro {self.macro_name} ran successfully.")
@@ -50,7 +52,7 @@ class MacroRunner:
             self.logger.log("Excel closed successfully.")
 
             # Join threads here
-            error_thread.join(timeout=10)
+            macro_error_thread.join(timeout=10)
             sap_alert_thread.join(timeout=10)
 
     def handle_excel_macro_errors(self):
@@ -65,14 +67,3 @@ class MacroRunner:
         except Exception as e:
             self.logger.error(f"Failed to handle Excel macro error: {e}")
             raise e
-
-    def handle_sap_alert(self):
-        try:
-            app = Application().connect(title_re="SAP Easy Access.*")
-            alert = app.window(title="SAP Logon", class_name="#32770")
-            alert.wait("exists", timeout=50000)
-            alert["OK"].click()
-            self.logger.log("SAP Alert handled successfully.")
-        except Exception as e:
-            self.logger.error(f"Failed to handle SAP alert: {e}")
-            raise

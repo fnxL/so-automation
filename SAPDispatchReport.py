@@ -5,7 +5,7 @@ import os
 import pandas as pd
 from datetime import datetime
 from Logger import Logger
-from utils import get_df_from_excel
+from utils import get_df_from_excel, create_thread, PywinUtils
 
 
 class SAPDispatchReport:
@@ -16,8 +16,13 @@ class SAPDispatchReport:
         print(self.source_folder)
 
     def run(self):
+        sap_alert_thread = create_thread(
+            target=PywinUtils.handle_sap_scripting_alert, args=(self.logger)
+        )
         self._connect_to_sap()
         reports = self._download_dispatch_reports()
+
+        sap_alert_thread.join(timeout=10)
         return reports
 
     def _connect_to_sap(self):
@@ -80,6 +85,8 @@ class SAPDispatchReport:
             self.session.findById("wnd[1]/tbar[0]/btn[0]").press()
             self.session.findById("wnd[0]/tbar[0]/btn[3]").press()
             self.session.findById("wnd[0]/tbar[0]/btn[3]").press()
+
+            file_path = os.path.join(self.source_folder, file_name)
             result.append(file_name)
         return result
 
