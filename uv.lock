@@ -33,6 +33,7 @@ dependencies = [
     { name = "propcache" },
     { name = "yarl" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/6a/61/d37b33a074ad867d1ecec9f03183e2b9fee067745cae17e73c264f556d57/aiohttp-3.12.0.tar.gz", hash = "sha256:e3f0a2b4d7fb16c0d584d9b8860f1e46d39f7d93372b25a6f80c10015a7acdab", size = 7762804, upload-time = "2025-05-24T22:33:33.318Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fd/7e/9d27424fadc63f89d9165e7865ecdcf49bd4ce03ed5f453e8fb1300c3ede/aiohttp-3.12.0-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:6ab223f5d0bd30f1b419addc4aef37f8d7723027e3d92393281cba97f8529209", size = 682843, upload-time = "2025-05-24T22:32:08.441Z" },
     { url = "https://files.pythonhosted.org/packages/9d/7e/d8f3b2efbd359138f81121d849c334b6df4bb91805a4e7380f175ea822cf/aiohttp-3.12.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:c5beab804eeff85cfae5c053e0d3bb7a7cdc2756ced50a586c56deb8b8ce16b9", size = 460508, upload-time = "2025-05-24T22:32:10.476Z" },
@@ -242,28 +243,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/b9/d4/75d2375a20d80aa262a8adee77bf56950e9292929e394b9fae2481803f11/cryptography-45.0.2-cp37-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:c0c000c1a09f069632d8a9eb3b610ac029fcc682f1d69b758e625d6ee713f4ed", size = 4560535, upload-time = "2025-05-18T02:45:59.33Z" },
     { url = "https://files.pythonhosted.org/packages/aa/18/c3a94474987ebcfb88692036b2ec44880d243fefa73794bdcbf748679a6e/cryptography-45.0.2-cp37-abi3-win32.whl", hash = "sha256:08281de408e7eb71ba3cd5098709a356bfdf65eebd7ee7633c3610f0aa80d79b", size = 2922045, upload-time = "2025-05-18T02:46:01.012Z" },
     { url = "https://files.pythonhosted.org/packages/63/63/fb28b30c144182fd44ce93d13ab859791adbf923e43bdfb610024bfecda1/cryptography-45.0.2-cp37-abi3-win_amd64.whl", hash = "sha256:48caa55c528617fa6db1a9c3bf2e37ccb31b73e098ac2b71408d1f2db551dde4", size = 3393321, upload-time = "2025-05-18T02:46:03.441Z" },
-]
-
-[[package]]
-name = "customtkinter"
-version = "5.2.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "darkdetect" },
-    { name = "packaging" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/cf/48/c5a9d44188c44702e1e3db493c741e9c779596835a761b819fe15431d163/customtkinter-5.2.2.tar.gz", hash = "sha256:fd8db3bafa961c982ee6030dba80b4c2e25858630756b513986db19113d8d207", size = 261999, upload-time = "2024-01-10T02:24:36.314Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/3b/b1/b43b33001a77256b335511e75f257d001082350b8506c8807f30c98db052/customtkinter-5.2.2-py3-none-any.whl", hash = "sha256:14ad3e7cd3cb3b9eb642b9d4e8711ae80d3f79fb82545ad11258eeffb2e6b37c", size = 296062, upload-time = "2024-01-10T02:24:33.53Z" },
-]
-
-[[package]]
-name = "darkdetect"
-version = "0.8.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/45/77/7575be73bf12dee231d0c6e60ce7fb7a7be4fcd58823374fc59a6e48262e/darkdetect-0.8.0.tar.gz", hash = "sha256:b5428e1170263eb5dea44c25dc3895edd75e6f52300986353cd63533fe7df8b1", size = 7681, upload-time = "2022-12-16T14:14:42.113Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f2/f2/728f041460f1b9739b85ee23b45fa5a505962ea11fd85bdbe2a02b021373/darkdetect-0.8.0-py3-none-any.whl", hash = "sha256:a7509ccf517eaad92b31c214f593dbcf138ea8a43b2935406bbd565e15527a85", size = 8955, upload-time = "2022-12-16T14:14:40.92Z" },
 ]
 
 [[package]]
@@ -1184,7 +1163,6 @@ name = "so-automation"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "customtkinter" },
     { name = "nicegui" },
     { name = "openpyxl" },
     { name = "pandas", extra = ["excel"] },
@@ -1192,12 +1170,10 @@ dependencies = [
     { name = "pywebview" },
     { name = "pywin32" },
     { name = "pywinauto" },
-    { name = "sv-ttk" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "customtkinter", specifier = ">=5.2.2" },
     { name = "nicegui", specifier = ">=2.18.0" },
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "pandas", extras = ["excel"], specifier = ">=2.2.3" },
@@ -1205,7 +1181,6 @@ requires-dist = [
     { name = "pywebview", specifier = ">=5.4" },
     { name = "pywin32", specifier = ">=310" },
     { name = "pywinauto", specifier = ">=0.6.9" },
-    { name = "sv-ttk", specifier = ">=2.6.0" },
 ]
 
 [[package]]
@@ -1218,15 +1193,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ce/20/08dfcd9c983f6a6f4a1000d934b9e6d626cff8d2eeb77a89a68eef20a2b7/starlette-0.46.2.tar.gz", hash = "sha256:7f7361f34eed179294600af672f565727419830b54b7b084efe44bb82d2fccd5", size = 2580846, upload-time = "2025-04-13T13:56:17.942Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8b/0c/9d30a4ebeb6db2b25a841afbb80f6ef9a854fc3b41be131d249a977b4959/starlette-0.46.2-py3-none-any.whl", hash = "sha256:595633ce89f8ffa71a015caed34a5b2dc1c0cdb3f0f1fbd1e69339cf2abeec35", size = 72037, upload-time = "2025-04-13T13:56:16.21Z" },
-]
-
-[[package]]
-name = "sv-ttk"
-version = "2.6.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/40/da/6ad667a4bad4d66ec2d15206c1a1ad81d572679e516aae078824a6f35870/sv_ttk-2.6.0.tar.gz", hash = "sha256:3fd440396c95e30e88f686fcf28be425480f7320d6bf346f9cea5d6f56702cc2", size = 47214, upload-time = "2024-01-28T17:33:29.49Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/0f/3d/be0abc3202e90f282ad465f4e7c6e41bc8dce810ce5d1611566a1e7dfba8/sv_ttk-2.6.0-py3-none-any.whl", hash = "sha256:4319c52edf2e14732fe84bdc9788e26f9e9a1ad79451ec0f89f0120ffc8105d9", size = 49097, upload-time = "2024-01-28T17:33:27.974Z" },
 ]
 
 [[package]]
