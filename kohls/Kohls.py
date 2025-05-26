@@ -275,7 +275,7 @@ class KohlsMacroGenerator(BaseMacroGenerator):
         self.macro_ws[self.customer_config["source_folder_cell"]] = self.source_folder
 
         # Save filled macro
-        macro_filename = "FILLELD_" + os.path.basename(self.macro_path)
+        macro_filename = "FILLED" + os.path.basename(self.macro_path)
         output_path = os.path.join(self.source_folder, macro_filename)
         self.macro_wb.save(output_path)
         self.logger.success(f'Macro file saved to "{output_path}"')

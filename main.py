@@ -2,6 +2,7 @@ from nicegui import app, ui
 from config import CUSTOMER_CONFIGS
 from Logger import Logger
 from automation_logic import run_customer_automation
+from datetime import datetime
 import webview
 import threading
 
@@ -66,7 +67,7 @@ class AutomationGUI:
             "no-shadow w-full h-full bg-neutral-800 rounded-lg border border-neutral-700 "
         ):
             ui.label("Automation Logs").classes("text-md font-semibold text-gray-200")
-            self.log = ui.log().classes(
+            self.log = ui.log(max_lines=100).classes(
                 "h-full bg-gray-950 border-gray-700 font-mono rounded-lg text-sm resize-none focus:ring-1 focus:ring-blue-500 text-wrap break-all overflow-y-auto"
             )
             self.logger = Logger(self.log)
