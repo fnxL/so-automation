@@ -24,7 +24,6 @@ def format_number(ws: Worksheet, col: int):
 
 
 def format_date(ws: Worksheet, startcol=0, endcol=1, date_format="DD-MM-YYYY"):
-    date_style = NamedStyle(name="datetime", number_format=date_format)
     for column in ws.iter_cols(min_col=startcol, max_col=endcol):
         for cell in column:
-            cell.style = date_style
+            cell.style = NamedStyle(name="datetime", number_format=date_format)

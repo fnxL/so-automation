@@ -3,6 +3,7 @@ import threading
 import win32com.client
 from Logger import Logger
 
+
 class MacroRunner:
     def __init__(self, macro_path: str, macro_name: str, logger: Logger):
         self.macro_path = macro_path
@@ -27,11 +28,16 @@ class MacroRunner:
 
         try:
             self.logger.log(f"Running Macro: {self.macro_name}")
+
             # Create different threads here
             error_thread = threading.Thread(target=self.handle_excel_macro_errors)
             error_thread.start()
 
+            sap_alert_thread = threading.Thread(target=self.handle_sap_alert)
+            sap_alert_thread.start()
+
             excel.Application.Run(self.macro_name)
+            self.logger.success(f"Macro {self.macro_name} ran successfully.")
 
         except Exception as e:
             self.logger.error(f"Error running macro: {e}")
@@ -45,6 +51,7 @@ class MacroRunner:
 
             # Join threads here
             error_thread.join(timeout=10)
+            sap_alert_thread.join(timeout=10)
 
     def handle_excel_macro_errors(self):
         try:
@@ -61,8 +68,8 @@ class MacroRunner:
 
     def handle_sap_alert(self):
         try:
-            app = Application().connect(title_re=".*SAP")
-            alert = app.window(title_re=".*SAP Logon", class_name="#32770")
+            app = Application().connect(title_re="SAP Easy Access.*")
+            alert = app.window(title="SAP Logon", class_name="#32770")
             alert.wait("exists", timeout=50000)
             alert["OK"].click()
             self.logger.log("SAP Alert handled successfully.")
