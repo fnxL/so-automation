@@ -1,10 +1,20 @@
 import win32com.client
 import threading
+import time
 from Logger import Logger
 from pywinauto import Application
 
 
 class SAPUtils:
+    @staticmethod
+    def start_sap_alert_thread(logger: Logger):
+        sap_alert_thread = threading.Thread(
+            target=SAPUtils.handle_sap_scripting_alert, args=(logger,)
+        )
+        sap_alert_thread.start()
+        time.sleep(1)
+        return sap_alert_thread
+
     @staticmethod
     def connect_to_sap(logger: Logger):
         sap_alert_thread = threading.Thread(

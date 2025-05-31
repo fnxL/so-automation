@@ -24,13 +24,10 @@ class SAPDispatchReport:
         print(so_list)
         for plant in so_list.keys():
             self._copy_list_to_clipboard(so_list[plant])
-            time.sleep(3)
             timestamp = datetime.now().strftime("%Y.%m.%d")
-            file_name = os.path.join(
-                self.source_folder, f"DispatchReport_{plant}_{timestamp}.xlsx"
-            )
+            file_name = os.path.join(f"DispatchReport_{plant}_{timestamp}.xlsx")
             self.session.findById("wnd[0]").maximize()
-            self.session.findById("wnd[0]/tbar[0]/okcd").text = "zsddr"
+            self.session.findById("wnd[0]/tbar[0]/okcd").text = "/Nzsddr"
             self.session.findById("wnd[0]").sendVKey(0)
             self.session.findById("wnd[0]/usr/ctxtS_WERKS").text = str(plant)
             self.session.findById("wnd[0]/usr/ctxtS_WERKS").caretPosition = 4
@@ -59,6 +56,7 @@ class SAPDispatchReport:
         win32clipboard.EmptyClipboard()
         win32clipboard.SetClipboardText(text)
         win32clipboard.CloseClipboard()
+        time.sleep(1)
         return text
 
     def _get_so_list(self):

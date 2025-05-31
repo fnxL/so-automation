@@ -29,25 +29,15 @@ class MacroRunner:
 
         try:
             self.logger.info(f"Running Macro: {self.macro_name}")
-
-            # Create different threads here
-            macro_error_thread = threading.Thread(
-                target=PywinUtils.handle_excel_macro_errors, args=(self.logger,)
+            sap_alert_thread = SAPUtils.start_sap_alert_thread(self.logger)
+            result = excel.Application.Run(self.macro_name)
+            self.logger.success(
+                f"Macro {self.macro_name} ran successfully. Result: {result}"
             )
-            macro_error_thread.start()
-
-            sap_alert_thread = threading.Thread(
-                target=SAPUtils.handle_sap_scripting_alert, args=(self.logger,)
-            )
-            sap_alert_thread.start()
-
-            excel.Application.Run(self.macro_name)
-            self.logger.success(f"Macro {self.macro_name} ran successfully.")
 
         except Exception as e:
-            self.logger.error(f"Macro Error: {e}")
-            raise e
-
+            self.logger.warning(f"Macro Error: {e}")
+            pass
         finally:
             # Clean up
             excel.DisplayAlerts = False
@@ -56,5 +46,4 @@ class MacroRunner:
             self.logger.info("Excel closed successfully.")
 
             # Join threads here
-            macro_error_thread.join(timeout=10)
             sap_alert_thread.join(timeout=10)
