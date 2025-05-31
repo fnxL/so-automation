@@ -171,16 +171,20 @@ class AutomationGUI:
             return
 
 
-AutomationGUI()
+def main():
+    AutomationGUI()
 
-app.native.start_args["debug"] = True
-app.native.window_args["resizable"] = True
-app.native.window_args["min_size"] = (800, 528)
+    app.native.start_args["debug"] = True
+    app.native.window_args["resizable"] = True
+    app.native.window_args["min_size"] = (800, 528)
 
-ui.run(
-    native=True,
-    title="🚀 SO Automation Tool",
-    dark=True,
-    reload=False,
-    window_size=(1024, 650),
-)
+    ui.run(
+        native=True,
+        title="🚀 SO Automation Tool",
+        dark=True,
+        reload=False,
+        window_size=(1024, 650),
+    )
+
+if __name__ == "__main__":
+    main()
