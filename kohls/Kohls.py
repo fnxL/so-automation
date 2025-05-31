@@ -19,8 +19,8 @@ class POData:
     port_of_shipment: str
     channel_type: str
     sub_channel_type: str
-    ship_start_date: str
-    ship_end_date: str
+    ship_start_date: datetime
+    ship_end_date: datetime
     packing_type: str
     notify: str
 
@@ -39,9 +39,8 @@ class BaseMacroGenerator:
     def _get_pdf_files(self) -> List[str]:
         return [f for f in os.listdir(self.source_folder) if f.lower().endswith(".pdf")]
 
-    def _format_ship_date(self, date_str: str) -> str:
-        """Format ship date from YYYY-mm-dd to DD-MM-YYYY"""
-        return datetime.strptime(date_str, "%Y-%m-%d").strftime("%d-%m-%Y")
+    def _parse_ship_date(self, date_str: str):
+        return datetime.fromisoformat(date_str)
 
     def _get_mastersheet_row(self, upc):
         result = self.mastersheet_df.query(f"upc=={upc}")
@@ -99,8 +98,8 @@ class KohlsMacroGenerator(BaseMacroGenerator):
         self.logger.info("Creating draft email with SAP Dispatch Reports...")
 
     def _parse_po_metadata(self, po_metadata: dict) -> POData:
-        ship_start_date = self._format_ship_date(po_metadata["ship_start_date"])
-        ship_end_date = self._format_ship_date(po_metadata["ship_end_date"])
+        ship_start_date = self._parse_ship_date(po_metadata["ship_start_date"])
+        ship_end_date = self._parse_ship_date(po_metadata["ship_end_date"])
         sub_channel_type = (
             "PURE PLAY ECOM" if po_metadata["channel_type"] == "ECOM" else "NIL"
         )
@@ -193,7 +192,7 @@ class KohlsMacroGenerator(BaseMacroGenerator):
         upc,
         mastersheet_row,
     ):
-        ship_month = int(po_data.ship_start_date.split("-")[1])
+        ship_month = po_data.ship_start_date.month
         pis_data = self._get_pis_data(mastersheet_row, po_data)
         s_part = self._get_s_part(
             plant=mastersheet_row["plant"],
