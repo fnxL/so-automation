@@ -12,7 +12,7 @@ class SAPUtils:
             target=SAPUtils.handle_sap_scripting_alert, args=(logger,)
         )
         sap_alert_thread.start()
-        time.sleep(1)
+        time.sleep(2)
         return sap_alert_thread
 
     @staticmethod
@@ -56,7 +56,7 @@ class SAPUtils:
     @staticmethod
     def handle_sap_scripting_alert(logger: Logger):
         try:
-            app = Application().connect(title_re="SAP Easy Access.*")
+            app = Application().connect(path="saplogon.exe")
             alert = app.window(title="SAP Logon", class_name="#32770")
             alert.wait("exists", timeout=50000)
             alert["OK"].click()
