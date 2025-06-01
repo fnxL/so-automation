@@ -1,7 +1,6 @@
 from Logger import Logger
 import pandas as pd
 from openpyxl.worksheet.worksheet import Worksheet
-from openpyxl.styles import NamedStyle
 from pywinauto import Application
 
 

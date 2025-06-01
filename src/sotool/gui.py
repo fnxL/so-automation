@@ -1,9 +1,11 @@
 import ttkbootstrap as ttk
+import threading
 from .logger import Logger
 from .config import config
 from datetime import datetime
 from .dialog import Dialog
 from tkinter.filedialog import askdirectory
+from .run import run_automation
 from ttkbootstrap.constants import *
 
 
@@ -15,12 +17,12 @@ class SOAutomation(ttk.Frame):
         self.automation_display_names = [
             data["display_name"] for key, data in config.items() if key != "default"
         ]
+
         self.automation_map = {
-            data["display_name"]: data
+            data["display_name"]: key
             for key, data in config.items()
             if key != "default"
         }
-
         self.configure_layout()
         self.create_select_automation()
         self.create_source_folder_selection()
@@ -170,13 +172,12 @@ class SOAutomation(ttk.Frame):
             )
             return
 
-        # Run thread
-
         self.logger.info(f"Running: {selected_automation}", "info")
         self.logger.info(f"Source Folder: {source_folder}", "info")
-        self.logger.info("Automation started...")
-        self.logger.success("Example success message.")
-        self.logger.warning(
-            "Example warning message.",
+
+        automation_name = self.automation_map.get(selected_automation)
+        thread = threading.Thread(
+            target=run_automation,
+            args=(automation_name, source_folder, stop_after_create_macro, self.logger),
         )
-        self.logger.error("Example error message.")
+        thread.start()
