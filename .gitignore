@@ -10,7 +10,7 @@ uploads/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-
+sotool.json
 # C extensions
 *.so
-
+.git.bak/

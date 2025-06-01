@@ -1,5 +1,6 @@
-from ..MacroGenerator import MacroGenerator
-from ..utils import Utils
+from ..macro import MacroGenerator, MacroRunner
+from ..utils import get_df_from_excel, format_number
+from ..sap import SAPDispatchReport
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Tuple
@@ -22,9 +23,7 @@ class POData:
 class KohlsMacroGenerator(MacroGenerator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pis_df = Utils.get_df_from_excel(
-            path=args.mastersheet_path, sheet_name="PIS"
-        )
+        self.pis_df = get_df_from_excel(path=self.mastersheet_path, sheet_name="PIS")
 
     def start(self):
         pdf_files = self._get_pdf_files_in_source_folder()
@@ -43,21 +42,16 @@ class KohlsMacroGenerator(MacroGenerator):
             self.logger.success("Macro file created successfully. Stopping here.")
             return
 
-        # MacroRunner(
-        #     macro_path=macro_path,
-        #     macro_name=self.customer_config["macro_name"],
-        #     logger=self.logger,
-        # ).run()
-
-        # self.logger.info("Downloading SAP Dispatch Reports...")
-
-        # reports = SAPDispatchReport(macro_path=macro_path, logger=self.logger).run()
-
-        # self.logger.success(
-        #     f"{len(reports)} SAP Dispatch Reports downloaded successfully."
-        # )
-
-        # self.logger.info("Creating draft email with SAP Dispatch Reports...")
+        MacroRunner(
+            macro_path=self.macro_path,
+            macro_name=self.customer_config["macro_name"],
+            logger=self.logger,
+        ).run()
+        self.logger.info("Downloading SAP Dispatch Reports...")
+        reports = SAPDispatchReport(macro_path=macro_path, logger=self.logger).run()
+        self.logger.success(
+            f"{len(reports)} SAP Dispatch Reports downloaded successfully."
+        )
 
     def _parse_po_metadata(self, po_metadata: dict) -> POData:
         ship_start_date = self._parse_ship_date(po_metadata["ship_start_date"])
@@ -227,11 +221,11 @@ class KohlsMacroGenerator(MacroGenerator):
             self.macro_ws.append([""])  # Add a blank row after each group
 
     def _finalize_macro_file(self):
-        Utils.format_number(
+        format_number(
             self.macro_ws, startcol=32, endcol=32, format="0"
         )  # UPC column long number format
 
-        Utils.format_number(
+        format_number(
             self.macro_ws, startcol=13, endcol=14, format="DD-MM-YYYY"
         )  # ship dates
 

@@ -1,0 +1,26 @@
+{
+    "default": {},
+    "kohls_towel": {
+        "display_name": "Kohls Towel",
+        "description": "Information about the automation.",
+        "macro_path": "absolute path to macro file here",
+        "macro_name": "vtowels",
+        "mastersheet_path": "absolute path to mastersheet file",
+        "source_folder_cell": "AK1",
+        "design_split": [
+            "abstract",
+            "medal",
+            "stripe"
+        ],
+        "mail": {
+            "2100": {
+                "to": "",
+                "cc": "",
+                "subject": "",
+                "body_template": "Hi"
+            },
+            "2000": {}
+        },
+        "notify_address": "notify address here"
+    }
+}

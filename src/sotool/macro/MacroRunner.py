@@ -1,12 +1,10 @@
+from loguru import logger
 import win32com.client
-import threading
-from Logger import Logger
-from utils import PywinUtils
-from SAPUtils import SAPUtils
+from ..utils import SAPUtils
 
 
 class MacroRunner:
-    def __init__(self, macro_path: str, macro_name: str, logger: Logger):
+    def __init__(self, macro_path: str, macro_name: str, logger=logger):
         self.macro_path = macro_path
         self.macro_name = macro_name
         self.logger = logger
@@ -37,13 +35,9 @@ class MacroRunner:
 
         except Exception as e:
             self.logger.warning(f"Macro Error: {e}")
-            pass
         finally:
-            # Clean up
             excel.DisplayAlerts = False
             workbook.Close(SaveChanges=True)
             excel.Quit()
             self.logger.info("Excel closed successfully.")
-
-            # Join threads here
             sap_alert_thread.join(timeout=10)

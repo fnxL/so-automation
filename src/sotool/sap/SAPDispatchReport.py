@@ -2,17 +2,16 @@ import win32clipboard
 import time
 import os
 from datetime import datetime
-from Logger import Logger
-from utils import get_df_from_excel
-from SAPUtils import SAPUtils
+from loguru import logger
+from ..utils import SAPUtils, get_df_from_excel
 
 
 class SAPDispatchReport:
-    def __init__(self, macro_path: str, logger: Logger):
+    def __init__(self, macro_path: str, logger=logger):
         self.macro_path = macro_path
-        self.logger = logger
         self.source_folder = os.path.dirname(macro_path)
         self.session = SAPUtils.connect_to_sap(logger)
+        self.logger = logger
 
     def run(self):
         reports = self._download_dispatch_reports()
