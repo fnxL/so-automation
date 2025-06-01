@@ -12,7 +12,6 @@ dependencies = [
     "openpyxl>=3.1.5",
     "pandas[excel]>=2.2.3",
     "pdfplumber==0.11.5",
-    "pyinstaller>=6.13.0",
     "pywin32>=310",
     "pywinauto>=0.6.9",
     "ttkbootstrap>=1.13.8",

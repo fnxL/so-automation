@@ -1,5 +1,11 @@
 from ..macro import MacroGenerator, MacroRunner
-from ..utils import get_df_from_excel, format_number
+from ..utils import (
+    get_df_from_excel,
+    format_number,
+    ExcelUtils,
+    OutlookClient,
+    OutlookClient32,
+)
 from ..sap import SAPDispatchReport
 from dataclasses import dataclass
 from datetime import datetime
@@ -47,11 +53,41 @@ class KohlsMacroGenerator(MacroGenerator):
             macro_name=self.customer_config["macro_name"],
             logger=self.logger,
         ).run()
+
         self.logger.info("Downloading SAP Dispatch Reports...")
-        reports = SAPDispatchReport(macro_path=macro_path, logger=self.logger).run()
+        self.reports = SAPDispatchReport(
+            macro_path=macro_path, logger=self.logger
+        ).run()
+
         self.logger.success(
-            f"{len(reports)} SAP Dispatch Reports downloaded successfully."
+            f"{len(self.reports)} SAP Dispatch Reports downloaded successfully."
         )
+
+        self._create_draft_mail()
+
+        self.logger.info("Draft emails created successfully.")
+
+    def _create_draft_mail(self):
+        outlook_client = OutlookClient(logger=self.logger).connect()
+        for report in self.reports:
+            plant = report[0]
+            report_path = report[1]
+
+            self.logger.info(f"Copying dispatch report to clipboard: {report_path}")
+            excel = ExcelUtils(
+                report_path,
+                logger=self.logger,
+            ).open_excel()
+            excel.copy_table()
+
+            to = self.customer_config["mail"][plant]["to"]
+            cc = self.customer_config["mail"][plant]["cc"]
+            subject = self.customer_config["mail"][plant]["subject"]
+            body = self.customer_config["mail"][plant]["body_template"]
+            self.logger.info(f"Creating draft email with SAP report for plant: {plant}")
+
+            outlook_client.create_mail_and_paste_from_clipboard(to, cc, subject, body)
+        outlook_client.disconnect()
 
     def _parse_po_metadata(self, po_metadata: dict) -> POData:
         ship_start_date = self._parse_ship_date(po_metadata["ship_start_date"])

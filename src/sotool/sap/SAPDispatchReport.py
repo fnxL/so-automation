@@ -46,7 +46,7 @@ class SAPDispatchReport:
             self.session.findById("wnd[0]/tbar[0]/btn[3]").press()
 
             file_path = os.path.join(self.source_folder, file_name)
-            result.append(file_path)
+            result.append((plant, file_path))
         return result
 
     def _copy_list_to_clipboard(self, so_list):
