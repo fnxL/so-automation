@@ -186,5 +186,6 @@ def main():
         window_size=(1024, 650),
     )
 
+
 if __name__ == "__main__":
     main()

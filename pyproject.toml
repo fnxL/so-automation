@@ -1,20 +1,28 @@
 [project]
-name = "so-automation"
+name = "sotool"
 version = "0.1.0"
-description = "Add your description here"
+description = "SO automation tools and scripts"
 readme = "README.md"
+authors = [
+    { name = "Ajay Kanki", email = "48607132+fnxL@users.noreply.github.com" }
+]
 requires-python = ">=3.13"
 dependencies = [
     "loguru>=0.7.3",
-    "nicegui>=2.18.0",
     "openpyxl>=3.1.5",
     "pandas[excel]>=2.2.3",
     "pdfplumber==0.11.5",
-    "pyinstaller>=6.13.0",
-    "pywebview>=5.4",
     "pywin32>=310",
     "pywinauto>=0.6.9",
+    "ttkbootstrap>=1.13.8",
 ]
+
+[project.scripts]
+sotool = "sotool:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.ruff]
 indent-width = 4
