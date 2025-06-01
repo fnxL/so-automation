@@ -13,5 +13,6 @@ __pycache__/
 sotool.json
 # C extensions
 *.so
-.git.bak/
-sotool.json
+build/
+dist/
+*.spec

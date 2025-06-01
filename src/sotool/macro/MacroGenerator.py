@@ -11,7 +11,7 @@ class MacroGenerator:
         self,
         source_folder: str,
         customer_name: str,
-        logger = logger,
+        logger=logger,
         stop_after_create_macro: bool = False,
     ):
         self.customer_config = config.get(customer_name)
