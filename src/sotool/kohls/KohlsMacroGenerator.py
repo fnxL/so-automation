@@ -4,12 +4,14 @@ from ..utils import (
     format_number,
     ExcelClient,
     OutlookClient,
+    apply_borders,
 )
 from ..sap import SAPDispatchReport
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Tuple
 from .pdf_processor import process_pdf
+from openpyxl import load_workbook
 import os
 
 
@@ -61,6 +63,12 @@ class KohlsMacroGenerator(MacroGenerator):
         for report in self.reports:
             plant = report[0]
             report_path = report[1]
+
+            # apply borders first
+            wb = load_workbook(filename=report_path, keep_vba=True)
+            ws = wb.active
+            apply_borders(ws)
+            wb.save(report_path)
 
             self.logger.info(f"Copying dispatch report to clipboard: {report_path}")
             excel = ExcelClient(

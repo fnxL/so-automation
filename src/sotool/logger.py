@@ -6,12 +6,13 @@ class Logger:
     def __init__(self, log_widget=None):
         self.logger = logger.bind(name="Logger")
         self.logger.remove()
-        self.logger.add(
-            sys.stdout,
-            format="<level>{time:%I:%M %p} [{level.name}]</level> {message}",
-            level="INFO",
-            colorize=True,
-        )
+        if sys.stdout:
+            self.logger.add(
+                sys.stdout,
+                format="<level>{time:%I:%M %p} [{level.name}]</level> {message}",
+                level="INFO",
+                colorize=True,
+            )
 
         if log_widget:
             self.log_widget = log_widget

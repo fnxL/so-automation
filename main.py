@@ -11,4 +11,4 @@ sys.path.insert(0, src_path)
 if __name__ == "__main__":
     main()
 
-# pyinstaller --onefile --windowed --name sotool_app run_main.py
+# pyinstaller --onefile --windowed --name sotool_app main.py

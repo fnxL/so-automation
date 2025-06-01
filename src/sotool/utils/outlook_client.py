@@ -15,16 +15,16 @@ class OutlookClient:
         try:
             self.logger.info("Attempting to open/connect to Outlook...")
             try:
-                self.app = Application().connect(path="OUTLOOK.EXE")
-                self.logger.info("Connected to existing Outlook instance")
+                self.app = Application().connect(path="outlook.exe")
+                self.logger.success("Connected to existing Outlook instance")
             except Exception as e:
-                subprocess.Popen([self.outlook_path])
+                subprocess.Popen("outlook.exe")
                 time.sleep(5)  # Wait for Outlook to start
-                self.app = Application().connect(path="OUTLOOK.EXE")
+                self.app = Application().connect(path="outlook.exe")
                 self.logger.info("Created a new Outlook instance")
 
             self.main_window = self.app.window(
-                title_re=".*Outlook.*", class_name="Olk Host"
+                title_re=".*Outlook.*", class_name="rctrl_renwnd32"
             )
             if self.main_window.exists():
                 self.main_window.set_focus()
@@ -37,59 +37,43 @@ class OutlookClient:
             self.logger.error(f"Failed to connect to Outlook: {e}")
             raise e
 
-    def create_mail_and_paste(self, to="", cc="", subject="", body=""):
+    def create_mail_and_paste(self, to="", cc="", subject="", body_text=""):
         self.logger.info("Creating new email...")
         try:
             self.main_window.set_focus()
             send_keys("^n")
             time.sleep(2)
 
-            email_window = self.app.window(title_re=".*- Message.*")
+            email_window = self.app.window(title_re=".*Message\s*\(HTML\).*")
             if not email_window.exists():
                 self.logger.error("Could not find email window")
                 raise Exception("Email window not found")
 
             email_window.set_focus()
+            email_window.ToEdit.set_text(to)
+            send_keys("{ENTER}")
 
-            to_field = email_window.child_window(title="To", control_type="Edit")
-            to_field.set_text(to)
+            email_window.CcEdit.set_text(cc)
+            send_keys("{ENTER}")
 
-            cc_button = email_window.child_window(title="Cc", control_type="Button")
-            if cc_button.exists():
-                cc_button.click()
-                time.sleep(1)
+            email_window.SubjectEdit.set_focus()
+            email_window.SubjectEdit.set_text(subject)
+            send_keys("{TAB}")
 
-            cc_field = email_window.child_window(title="Cc", control_type="Edit")
-            if cc_field.exists():
-                cc_field.set_text(cc)
+            send_keys(body_text, with_spaces=True, with_newlines=True)
 
-            # Subject line
-            subject_field = email_window.child_window(
-                title="Subject", control_type="Edit"
-            )
-            subject_field.set_text(subject)
-
-            # Focus on the body
-            email_window.set_focus()
-            send_keys("{TAB}")  # Move to the body field
-
-            # Type some text
-            send_keys("This is a test mail{ENTER}{ENTER}")
-            send_keys("^v")  # Ctrl+V to paste clipboard content
-            self.logger.info("Pasting text from clipboard.")
-
+            send_keys("{ENTER}{ENTER}")
+            send_keys("^v")
             time.sleep(1)
 
-            # Save the draft (Ctrl+S)
             email_window.set_focus()
             send_keys("^s")
             self.logger.info("Draft email saved.")
             self.logger.info("Closing email window.")
-            time.sleep(2)
+            time.sleep(1)
             email_window.set_focus()
             send_keys("%{F4}")
             self.logger.info("Email window closed.")
-            time.sleep(1)
 
         except Exception as e:
             self.logger.error(f"Failed to create email: {e}")
