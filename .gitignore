@@ -14,3 +14,4 @@ sotool.json
 # C extensions
 *.so
 .git.bak/
+sotool.json
