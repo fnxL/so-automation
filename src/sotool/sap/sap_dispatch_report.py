@@ -3,21 +3,25 @@ import time
 import os
 from datetime import datetime
 from loguru import logger
-from ..utils import SAPUtils, get_df_from_excel
+from ..utils import get_df_from_excel, sap_utils
 
 
 class SAPDispatchReport:
     def __init__(self, macro_path: str, logger=logger):
         self.macro_path = macro_path
         self.source_folder = os.path.dirname(macro_path)
-        self.session = SAPUtils.connect_to_sap(logger)
+        self.session = sap_utils.connect_to_sap(logger)
         self.logger = logger
 
     def run(self):
         reports = self._download_dispatch_reports()
+        self.logger.success(
+            f"{len(self.reports)} SAP Dispatch Reports downloaded successfully."
+        )
         return reports
 
     def _download_dispatch_reports(self):
+        self.logger.info("Downloading SAP Dispatch Reports...")
         so_list = self._get_so_list()
         result = []
         print(so_list)

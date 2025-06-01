@@ -6,7 +6,7 @@ import pythoncom
 from loguru import logger
 
 
-class OutlookClient32:
+class OutlookClientWin32:
     def __init__(self, logger=logger):
         self.logger = logger
         self.outlook = None

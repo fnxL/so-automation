@@ -43,6 +43,6 @@ def run_automation(
     end_time = time.time()
     total_time = end_time - start_time
     logger.success(
-        f"Automation {automation_name} ran successfully. Time taken: {total_time} seconds."
+        f"Automation {automation_name} ran successfully. Time taken: {total_time:.2f} seconds."
     )
     return

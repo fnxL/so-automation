@@ -15,12 +15,12 @@ class OutlookClient:
         try:
             self.logger.info("Attempting to open/connect to Outlook...")
             try:
-                self.app = Application().connect(path="olk")
+                self.app = Application().connect(path="OUTLOOK.EXE")
                 self.logger.info("Connected to existing Outlook instance")
             except Exception as e:
                 subprocess.Popen([self.outlook_path])
                 time.sleep(5)  # Wait for Outlook to start
-                self.app = Application().connect(path="olk")
+                self.app = Application().connect(path="OUTLOOK.EXE")
                 self.logger.info("Created a new Outlook instance")
 
             self.main_window = self.app.window(
@@ -37,7 +37,7 @@ class OutlookClient:
             self.logger.error(f"Failed to connect to Outlook: {e}")
             raise e
 
-    def create_mail_and_paste_from_clipboard(self, to="", cc="", subject="", body=""):
+    def create_mail_and_paste(self, to="", cc="", subject="", body=""):
         self.logger.info("Creating new email...")
         try:
             self.main_window.set_focus()
@@ -76,13 +76,15 @@ class OutlookClient:
             # Type some text
             send_keys("This is a test mail{ENTER}{ENTER}")
             send_keys("^v")  # Ctrl+V to paste clipboard content
+            self.logger.info("Pasting text from clipboard.")
+
             time.sleep(1)
 
             # Save the draft (Ctrl+S)
             email_window.set_focus()
             send_keys("^s")
             self.logger.info("Draft email saved.")
-            self.logger.info("Closing email window...")
+            self.logger.info("Closing email window.")
             time.sleep(2)
             email_window.set_focus()
             send_keys("%{F4}")

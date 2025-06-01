@@ -2,7 +2,7 @@ import win32com.client as win32
 from loguru import logger
 
 
-class ExcelUtils:
+class ExcelClient:
     def __init__(self, excel_path: str, logger=logger):
         self.excel_path = excel_path
         self.logger = logger
@@ -26,7 +26,7 @@ class ExcelUtils:
                 f"Macro {macro_name} ran successfully. Result: {result}"
             )
         except Exception as e:
-            self.logger.error(f"Macro error: {e}")
+            self.logger.warning(f"Macro error: {e}")
 
     def copy_table(self, sheet=1):
         sheet = self.workbook.Sheets(sheet)
@@ -34,7 +34,6 @@ class ExcelUtils:
         return
 
     def cleanup(self):
-        self.logger.info("Cleaning up...COM objects")
         self.excel.DisplayAlerts = False
         self.workbook.Close(SaveChanges=True)
         self.excel.Quit()

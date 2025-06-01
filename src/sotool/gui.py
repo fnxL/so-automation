@@ -9,7 +9,7 @@ from .config import config
 from datetime import datetime
 from .dialog import Dialog
 from tkinter.filedialog import askdirectory
-from .run import run_automation
+from .run_automation import run_automation
 from ttkbootstrap.constants import *
 
 
@@ -177,7 +177,7 @@ class SOAutomation(ttk.Frame):
             return
 
         self.logger.info(f"Running: {selected_automation}", "info")
-        self.logger.info(f"Source Folder: {source_folder}", "info")
+        self.logger.info(f"Source Folder Path: {source_folder}", "info")
 
         automation_name = self.automation_map.get(selected_automation)
         thread = threading.Thread(

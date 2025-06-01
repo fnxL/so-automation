@@ -2,9 +2,8 @@ from ..macro import MacroGenerator, MacroRunner
 from ..utils import (
     get_df_from_excel,
     format_number,
-    ExcelUtils,
+    ExcelClient,
     OutlookClient,
-    OutlookClient32,
 )
 from ..sap import SAPDispatchReport
 from dataclasses import dataclass
@@ -35,7 +34,7 @@ class KohlsMacroGenerator(MacroGenerator):
         pdf_files = self._get_pdf_files_in_source_folder()
         if not pdf_files:
             self.logger.error("No PDF files found in the source folder.")
-            raise
+            raise FileNotFoundError("No PDF files found in the source folder.")
 
         self.logger.info(f"Found {len(pdf_files)} PDF files to process")
 
@@ -47,25 +46,15 @@ class KohlsMacroGenerator(MacroGenerator):
         if self.stop_after_create_macro:
             self.logger.success("Macro file created successfully. Stopping here.")
             return
-
-        MacroRunner(
+        MacroRunner.run(
             macro_path=self.macro_path,
             macro_name=self.customer_config["macro_name"],
             logger=self.logger,
-        ).run()
-
-        self.logger.info("Downloading SAP Dispatch Reports...")
+        )
         self.reports = SAPDispatchReport(
             macro_path=macro_path, logger=self.logger
         ).run()
-
-        self.logger.success(
-            f"{len(self.reports)} SAP Dispatch Reports downloaded successfully."
-        )
-
         self._create_draft_mail()
-
-        self.logger.info("Draft emails created successfully.")
 
     def _create_draft_mail(self):
         outlook_client = OutlookClient(logger=self.logger).connect()
@@ -74,7 +63,7 @@ class KohlsMacroGenerator(MacroGenerator):
             report_path = report[1]
 
             self.logger.info(f"Copying dispatch report to clipboard: {report_path}")
-            excel = ExcelUtils(
+            excel = ExcelClient(
                 report_path,
                 logger=self.logger,
             ).open_excel()
@@ -84,10 +73,11 @@ class KohlsMacroGenerator(MacroGenerator):
             cc = self.customer_config["mail"][plant]["cc"]
             subject = self.customer_config["mail"][plant]["subject"]
             body = self.customer_config["mail"][plant]["body_template"]
-            self.logger.info(f"Creating draft email with SAP report for plant: {plant}")
+            self.logger.info(f"Creating email for plant: {plant}")
+            outlook_client.create_mail_and_paste(to, cc, subject, body)
 
-            outlook_client.create_mail_and_paste_from_clipboard(to, cc, subject, body)
         outlook_client.disconnect()
+        self.logger.info("Draft emails created successfully.")
 
     def _parse_po_metadata(self, po_metadata: dict) -> POData:
         ship_start_date = self._parse_ship_date(po_metadata["ship_start_date"])
@@ -272,5 +262,5 @@ class KohlsMacroGenerator(MacroGenerator):
         macro_filename = "FILLED_" + os.path.basename(self.macro_path)
         output_path = os.path.join(self.source_folder, macro_filename)
         self.macro_wb.save(output_path)
-        self.logger.success(f'Macro file saved to "{output_path}"')
+        self.logger.info(f'Macro file saved to "{output_path}"')
         return output_path

@@ -1,9 +1,8 @@
 import pandas as pd
 from openpyxl.worksheet.worksheet import Worksheet
-from .SAPUtils import SAPUtils
-from .ExcelUtils import ExcelUtils
-from .OutlookClient import OutlookClient
-from .OutlookClientWin32 import OutlookClient32
+from .excel_client import ExcelClient
+from .outlook_client import OutlookClient
+from .sap_utils import SAPUtils
 
 
 def get_df_from_excel(path: str, sheet_name: str | int = 0, **kwargs) -> pd.DataFrame:
@@ -21,10 +20,9 @@ def format_number(ws: Worksheet, startcol=0, endcol=1, format="0"):
 
 
 __all__ = [
-    "SAPUtils",
     "get_df_from_excel",
     "format_number",
-    "ExcelUtils",
     "OutlookClient",
-    "OutlookClient32",
+    "SAPUtils",
+    "ExcelClient",
 ]

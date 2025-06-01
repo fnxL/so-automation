@@ -23,7 +23,6 @@ class MacroGenerator:
 
         # Load excel files
         self.mastersheet_df = get_df_from_excel(path=self.mastersheet_path)
-        pass
         self.macro_wb = load_workbook(filename=self.macro_path, keep_vba=True)
         self.macro_ws = self.macro_wb.worksheets[0]
 
@@ -36,5 +35,6 @@ class MacroGenerator:
     def _get_mastersheet_row(self, upc):
         result = self.mastersheet_df.query(f"upc=={upc}")
         if result.empty:
+            self.logger.error(f"No mastersheet row found for UPC: {upc}")
             raise ValueError(f"No mastersheet row found for UPC: {upc}")
         return result.iloc[0]
