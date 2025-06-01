@@ -1,4 +1,5 @@
 import ttkbootstrap as ttk
+from .logger import Logger
 from .config import config
 from datetime import datetime
 from .dialog import Dialog
@@ -47,9 +48,11 @@ class SOAutomation(ttk.Frame):
         self.log_text.config(yscrollcommand=log_scrollbar.set)
 
         self.log_text.tag_configure("info", foreground="white")
-        self.log_text.tag_configure("success", foreground="green")
-        self.log_text.tag_configure("warn", foreground="orange")
+        self.log_text.tag_configure("success", foreground="#90ee90")
+        self.log_text.tag_configure("warning", foreground="orange")
         self.log_text.tag_configure("error", foreground="red")
+
+        self.logger = Logger(self._log_message).get_logger()
 
     def create_run_automation_button(self):
         # Run Automation Button
@@ -64,11 +67,11 @@ class SOAutomation(ttk.Frame):
         )
 
     def create_stop_automation_check(self):
-        self.stopAfterMacroCreate = ttk.BooleanVar(value=False)
+        self.stop_after_create_macro = ttk.BooleanVar(value=False)
         ttk.Checkbutton(
             self,
             text="Stop after creating macro",
-            variable=self.stopAfterMacroCreate,
+            variable=self.stop_after_create_macro,
             bootstyle="round-toggle",
         ).grid(row=3, column=0, sticky="w", pady=5, padx=(0, 10))
 
@@ -137,8 +140,7 @@ class SOAutomation(ttk.Frame):
 
     def _log_message(self, message, level="info"):
         self.log_text.config(state=NORMAL)
-        timestamp = datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
-        self.log_text.insert(END, f"{timestamp} {message}\n", level)
+        self.log_text.insert(END, f"{message}\n", level)
         self.log_text.see(END)  # Scroll to the end
         self.log_text.config(state=DISABLED)
 
@@ -150,7 +152,7 @@ class SOAutomation(ttk.Frame):
     def _run_automation(self):
         selected_automation = self.select_automation.get()
         source_folder = self.select_source_folder.get()
-        stopAfterMacroCreate = self.stopAfterMacroCreate.get()
+        stop_after_create_macro = self.stop_after_create_macro.get()
 
         if not selected_automation:
             Dialog.show_error(
@@ -170,10 +172,11 @@ class SOAutomation(ttk.Frame):
 
         # Run thread
 
-        self._log_message(f"Running: {selected_automation}", "info")
-        self._log_message(f"Source Folder: {source_folder}", "info")
-        self._log_message(f"Include Subfolders: {stopAfterMacroCreate}", "info")
-        self._log_message("Automation started...", "info")
-        self._log_message("Example success message.", "success")
-        self._log_message("Example warning message.", "warn")
-        self._log_message("Example error message.", "error")
+        self.logger.info(f"Running: {selected_automation}", "info")
+        self.logger.info(f"Source Folder: {source_folder}", "info")
+        self.logger.info("Automation started...")
+        self.logger.success("Example success message.")
+        self.logger.warning(
+            "Example warning message.",
+        )
+        self.logger.error("Example error message.")
