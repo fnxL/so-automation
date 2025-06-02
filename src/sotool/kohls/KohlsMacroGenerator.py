@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import List, Tuple
 from .pdf_processor import process_pdf
 from openpyxl import load_workbook
+import time
 import os
 
 
@@ -43,18 +44,18 @@ class KohlsMacroGenerator(MacroGenerator):
         for pdf_file in pdf_files:
             self._process_single_po(pdf_file)
 
-        macro_path = self._finalize_macro_file()
+        filled_macro_path = self._finalize_macro_file()
 
         if self.stop_after_create_macro:
             self.logger.success("Macro file created successfully. Stopping here.")
             return
         MacroRunner.run(
-            macro_path=self.macro_path,
+            macro_path=filled_macro_path,
             macro_name=self.config["macro_name"],
             logger=self.logger,
         )
         self.reports = SAPDispatchReport(
-            macro_path=macro_path, logger=self.logger
+            macro_path=filled_macro_path, logger=self.logger
         ).run()
         self._create_draft_mail()
 
@@ -69,6 +70,7 @@ class KohlsMacroGenerator(MacroGenerator):
             ws = wb.active
             apply_borders(ws)
             wb.save(report_path)
+            time.sleep(5)
 
             self.logger.info(f"Copying dispatch report to clipboard: {report_path}")
             excel = ExcelClient(

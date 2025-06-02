@@ -3,20 +3,20 @@ import time
 import os
 from datetime import datetime
 from loguru import logger
-from ..utils import get_df_from_excel, sap_utils
-
-
+from ..utils import get_df_from_excel, SAPUtils
+from pywinauto.keyboard import send_keys
+from pywinauto.application import Application
 class SAPDispatchReport:
     def __init__(self, macro_path: str, logger=logger):
         self.macro_path = macro_path
         self.source_folder = os.path.dirname(macro_path)
-        self.session = sap_utils.connect_to_sap(logger)
+        self.session = SAPUtils.connect_to_sap(logger)
         self.logger = logger
 
     def run(self):
         reports = self._download_dispatch_reports()
         self.logger.success(
-            f"{len(self.reports)} SAP Dispatch Reports downloaded successfully."
+            f"{len(reports)} SAP Dispatch Reports downloaded successfully."
         )
         return reports
 
@@ -51,6 +51,7 @@ class SAPDispatchReport:
 
             file_path = os.path.join(self.source_folder, file_name)
             result.append((plant, file_path))
+            send_keys("%{F4}")
         return result
 
     def _copy_list_to_clipboard(self, so_list):

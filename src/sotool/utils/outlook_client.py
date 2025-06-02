@@ -70,10 +70,10 @@ class OutlookClient:
             email_window.set_focus()
             email_window.ToEdit.set_text(to)
             email_window.CcEdit.set_text(cc)
+            email_window.SubjectEdit.set_focus()
             email_window.SubjectEdit.set_text(subject)
-
-            email_window._WwG.click_input()  # message body
-
+            
+            send_keys("{TAB}")
             send_keys(body_text, with_spaces=True, with_newlines=True)
             send_keys("{ENTER}{ENTER}")
             send_keys("^v")
