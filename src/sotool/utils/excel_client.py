@@ -83,6 +83,3 @@ class ExcelClient:
         self.workbook.Close(SaveChanges=True)
         self.excel.Quit()
         self.logger.info("Excel closed successfully.")
-
-
-ExcelClient.close_workbook(workbook_title_contains="DispatchReport")

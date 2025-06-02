@@ -62,15 +62,15 @@ class KohlsMacroGenerator(MacroGenerator):
     def _create_draft_mail(self):
         outlook_client = OutlookClient(logger=self.logger).connect()
         for report in self.reports:
-            plant = report[0]
+            plant = str(report[0])
             report_path = report[1]
 
             # apply borders first
-            wb = load_workbook(filename=report_path, keep_vba=True)
+            wb = load_workbook(filename=report_path)
             ws = wb.active
             apply_borders(ws)
             wb.save(report_path)
-            time.sleep(5)
+            time.sleep(2)
 
             self.logger.info(f"Copying dispatch report to clipboard: {report_path}")
             excel = ExcelClient(
