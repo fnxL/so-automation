@@ -1,6 +1,6 @@
 from .config import config
 from loguru import logger
-from .kohls import KohlsMacroGenerator
+from .kohls import KohlsMacroGenerator, KohlsRugs
 import time
 import os
 
@@ -57,12 +57,22 @@ def run_automation(
     customer_config = validate_config(automation_name, logger)
     start_time = time.time()
 
-    if "kohls" in automation_name.lower():
-        KohlsMacroGenerator(
-            config=customer_config,
-            source_folder=source_folder,
-            stop_after_create_macro=stop_after_create_macro,
-        ).start()
+    match automation_name.lower():
+        case "kohls_towel":
+            KohlsMacroGenerator(
+                config=customer_config,
+                source_folder=source_folder,
+                stop_after_create_macro=stop_after_create_macro,
+                logger=logger,
+            ).start()
+            return
+        case "kohls_rugs":
+            KohlsRugs(
+                config=customer_config,
+                source_folder=source_folder,
+                stop_after_create_macro=stop_after_create_macro,
+                logger=logger,
+            ).start()
 
     end_time = time.time()
     total_time = end_time - start_time

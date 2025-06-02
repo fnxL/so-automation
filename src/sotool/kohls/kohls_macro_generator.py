@@ -1,6 +1,5 @@
 from ..macro import MacroGenerator, MacroRunner
 from ..utils import (
-    get_df_from_excel,
     format_number,
     ExcelClient,
     OutlookClient,
@@ -31,7 +30,6 @@ class POData:
 class KohlsMacroGenerator(MacroGenerator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pis_df = get_df_from_excel(path=self.mastersheet_path, sheet_name="PIS")
 
     def start(self):
         pdf_files = self._get_pdf_files_in_source_folder()

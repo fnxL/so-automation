@@ -17,6 +17,7 @@ class MacroGenerator:
         self.source_folder = source_folder
         self.mastersheet_path = self.config.get("mastersheet_path")
         self.macro_path = self.config.get("macro_path")
+        self.pis_df = get_df_from_excel(path=self.mastersheet_path, sheet_name="PIS")
         self.stop_after_create_macro = stop_after_create_macro
         self.logger = logger
 
