@@ -26,7 +26,7 @@ class OutlookClient:
             self.main_window = self.app.window(
                 title_re=".*Outlook.*", class_name="rctrl_renwnd32"
             )
-            if self.main_window.exists():
+            if self.main_window.exists(timeout=60):
                 self.main_window.set_focus()
                 self.logger.success("Connected to Outlook successfully.")
                 return self
@@ -45,7 +45,7 @@ class OutlookClient:
             time.sleep(2)
 
             email_window = self.app.window(title_re=".*Message\s*\(HTML\).*")
-            if not email_window.exists():
+            if not email_window.exists(timeout=60):
                 self.logger.error("Could not find email window")
                 raise Exception("Email window not found")
 
@@ -84,3 +84,11 @@ class OutlookClient:
             self.app = None
             self.main_window = None
             self.logger.info("Disconnected from Outlook successfully.")
+
+
+OutlookClient().connect().create_mail_and_paste(
+    to="operations@company.com",
+    cc="manager@company.com",
+    subject="Subject",
+    body_text="This is a test mail",
+)
