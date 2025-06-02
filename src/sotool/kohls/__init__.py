@@ -1,3 +1,3 @@
-from .KohlsMacroGenerator import KohlsMacroGenerator
+from .kohls_macro_generator import KohlsMacroGenerator
 
-__all__ = ["KohlsMacroGenerator"]
+__all__ = ["kohls_macro_generator"]
