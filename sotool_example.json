@@ -3,9 +3,8 @@
     "kohls_towel": {
         "display_name": "Kohls Towel",
         "description": "Information about the automation.",
-        "macro_path": "absolute path to macro file here",
+        "base_folder": "absolute path to the folder where macro and mastersheet are stored",
         "macro_name": "vtowels",
-        "mastersheet_path": "absolute path to mastersheet file",
         "source_folder_cell": "AK1",
         "design_split": [
             "abstract",
@@ -17,7 +16,7 @@
                 "to": "",
                 "cc": "",
                 "subject": "",
-                "body_template": "Hi"
+                "body_template": "Hi,\nPlease find below message"
             },
             "2000": {}
         },

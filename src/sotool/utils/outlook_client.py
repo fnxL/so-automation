@@ -3,6 +3,7 @@ from pywinauto.application import Application
 from pywinauto.keyboard import send_keys
 import subprocess
 import time
+import os
 
 
 class OutlookClient:
@@ -11,6 +12,22 @@ class OutlookClient:
         self.app = None
         self.main_window = None
 
+    def _get_outlook_path(self):
+        outlook_paths = [
+            "C:\\Program Files\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE",
+            "C:\\Program Files\\Microsoft Office\\root\\Office15\\OUTLOOK.EXE",
+            "C:\\Program Files\\Microsoft Office\\root\\Office14\\OUTLOOK.EXE",
+            "C:\\Program Files\\Microsoft Office\\root\\Office13\\OUTLOOK.EXE",
+            "C:\\Program Files\\Microsoft Office\\root\\Office12\\OUTLOOK.EXE",
+            "C:\\Program Files\\Microsoft Office\\root\\Office11\\OUTLOOK.EXE",
+            "C:\\Program Files\\Microsoft Office\\root\\Office10\\OUTLOOK.EXE",
+        ]
+        for path in outlook_paths:
+            if os.path.exists(path):
+                return path
+
+        raise Exception("Could not find Outlook executable.")
+
     def connect(self):
         try:
             self.logger.info("Attempting to open/connect to Outlook...")
@@ -18,7 +35,8 @@ class OutlookClient:
                 self.app = Application().connect(path="outlook.exe")
                 self.logger.success("Connected to existing Outlook instance")
             except Exception as e:
-                subprocess.Popen("outlook.exe")
+                outlook_path = self._get_outlook_path()
+                subprocess.Popen(outlook_path)
                 time.sleep(5)  # Wait for Outlook to start
                 self.app = Application().connect(path="outlook.exe")
                 self.logger.info("Created a new Outlook instance")
@@ -44,27 +62,22 @@ class OutlookClient:
             send_keys("^n")
             time.sleep(2)
 
-            email_window = self.app.window(title="Untitled - Message (HTML)")
+            email_window = self.app.window(title_re=".*Untitled - Message.*")
             if not email_window.exists(timeout=30):
                 self.logger.error("Could not find email window")
                 raise Exception("Email window not found")
 
             email_window.set_focus()
             email_window.ToEdit.set_text(to)
-            send_keys("{ENTER}")
-
             email_window.CcEdit.set_text(cc)
-            send_keys("{ENTER}")
-
-            email_window.SubjectEdit.set_focus()
             email_window.SubjectEdit.set_text(subject)
-            send_keys("{TAB}")
+
+            email_window._WwG.click_input()  # message body
 
             send_keys(body_text, with_spaces=True, with_newlines=True)
             send_keys("{ENTER}{ENTER}")
             send_keys("^v")
             time.sleep(1)
-
             send_keys("^s")
             self.logger.info("Draft email saved.")
             self.logger.info("Closing email window.")
@@ -81,3 +94,11 @@ class OutlookClient:
             self.app = None
             self.main_window = None
             self.logger.info("Disconnected from Outlook successfully.")
+
+
+OutlookClient().connect().create_mail_and_paste(
+    to="test@test.com; ajay@ajay.com",
+    cc="test2@test.com; test@test2.com",
+    subject="Test",
+    body_text="This is a test email.",
+)
