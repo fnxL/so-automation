@@ -7,13 +7,24 @@ def get_config_path():
     if config_path and os.path.isfile(config_path):
         return config_path
 
-    home_config = os.path.join(os.path.expanduser("~"), "sotool.json")
+    if os.path.isfile("sotool.json"):
+        return "sotool.json"
 
+    home_config = os.path.join(os.path.expanduser("~"), "sotool.json")
     if os.path.isfile(home_config):
         return home_config
 
-    if os.path.isfile("sotool.json"):
-        return "sotool.json"
+    downloads = os.path.join(os.path.expanduser("~"), "Downloads")
+    if os.path.isdir(downloads):
+        config_path = os.path.join(downloads, "sotool.json")
+        if os.path.isfile(config_path):
+            return config_path
+
+    desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+    if os.path.isdir(desktop):
+        config_path = os.path.join(desktop, "sotool.json")
+        if os.path.isfile(config_path):
+            return config_path
 
     raise FileNotFoundError("sotool.json config file not found!")
 
