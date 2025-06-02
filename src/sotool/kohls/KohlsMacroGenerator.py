@@ -50,7 +50,7 @@ class KohlsMacroGenerator(MacroGenerator):
             return
         MacroRunner.run(
             macro_path=self.macro_path,
-            macro_name=self.customer_config["macro_name"],
+            macro_name=self.config["macro_name"],
             logger=self.logger,
         )
         self.reports = SAPDispatchReport(
@@ -77,10 +77,10 @@ class KohlsMacroGenerator(MacroGenerator):
             ).open_excel()
             excel.copy_table()
 
-            to = self.customer_config["mail"][plant]["to"]
-            cc = self.customer_config["mail"][plant]["cc"]
-            subject = self.customer_config["mail"][plant]["subject"]
-            body = self.customer_config["mail"][plant]["body_template"]
+            to = self.config["mail"][plant]["to"]
+            cc = self.config["mail"][plant]["cc"]
+            subject = self.config["mail"][plant]["subject"]
+            body = self.config["mail"][plant]["body_template"]
             self.logger.info(f"Creating email for plant: {plant}")
             outlook_client.create_mail_and_paste(to, cc, subject, body)
 
@@ -95,7 +95,7 @@ class KohlsMacroGenerator(MacroGenerator):
         )
         packing_type = "BULK" if po_metadata["channel_type"] == "RETAIL" else "ECOM"
         notify = (
-            self.customer_config["notify_address"]
+            self.config["notify_address"]
             if "notify" in po_metadata
             else "2% commission to WUSA"
         )
@@ -135,12 +135,12 @@ class KohlsMacroGenerator(MacroGenerator):
         sales_unit = mastersheet_row["sales unit"]
         design = str(mastersheet_row["design"]).lower().strip()
 
-        if design in self.customer_config["design_split"]:
+        if design in self.config["design_split"]:
             return f"{design}_{sales_unit}"
         return sales_unit
 
     def _get_adjusted_po(self, base_po: int | str, design: str):
-        if design in self.customer_config["design_split"]:
+        if design in self.config["design_split"]:
             return f"{base_po} {design}"
         return base_po
 
@@ -264,7 +264,7 @@ class KohlsMacroGenerator(MacroGenerator):
         )  # ship dates
 
         # Set source folder in macro file
-        self.macro_ws[self.customer_config["source_folder_cell"]] = self.source_folder
+        self.macro_ws[self.config["source_folder_cell"]] = self.source_folder
 
         # Save filled macro
         macro_filename = "FILLED_" + os.path.basename(self.macro_path)

@@ -1,5 +1,4 @@
 from loguru import logger
-from ..config import config
 from ..utils import get_df_from_excel
 from openpyxl import load_workbook
 from datetime import datetime
@@ -9,15 +8,15 @@ import os
 class MacroGenerator:
     def __init__(
         self,
+        config,
         source_folder: str,
-        customer_name: str,
         logger=logger,
         stop_after_create_macro: bool = False,
     ):
-        self.customer_config = config.get(customer_name)
+        self.config = config
         self.source_folder = source_folder
-        self.mastersheet_path = self.customer_config.get("mastersheet_path")
-        self.macro_path = self.customer_config.get("macro_path")
+        self.mastersheet_path = self.config.get("mastersheet_path")
+        self.macro_path = self.config.get("macro_path")
         self.stop_after_create_macro = stop_after_create_macro
         self.logger = logger
 

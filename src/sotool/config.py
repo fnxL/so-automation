@@ -15,11 +15,13 @@ def get_config_path():
     if os.path.isfile("sotool.json"):
         return "sotool.json"
 
-    return FileNotFoundError("sotool.json config file not found!")
+    raise FileNotFoundError("sotool.json config file not found!")
 
 
 def read_config():
-    with open(get_config_path(), "r") as f:
+    config_path = get_config_path()
+    print(f"Reading config from {config_path}")
+    with open(config_path, "r") as f:
         try:
             return json.load(f)
         except json.JSONDecodeError as e:

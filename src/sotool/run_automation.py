@@ -6,22 +6,46 @@ import os
 
 
 def validate_config(automation_name, logger=logger):
-    automation_config = config.get(automation_name)
-    if not automation_config:
+    customer_config = config.get(automation_name)
+    if not customer_config:
         msg = f"No configuration found for {automation_name}"
         logger.error(msg)
         raise ValueError(f"No configuration found for {automation_name}")
 
-    if not os.path.isfile(automation_config["mastersheet_path"]):
-        msg = f"Mastersheet not found: {automation_config['mastersheet_path']}"
+    base_folder = customer_config.get("base_folder")
+    if not base_folder:
+        msg = "No base folder found in config"
         logger.error(msg)
-        raise FileNotFoundError(
-            f"Mastersheet not found: {automation_config['mastersheet']}"
-        )
+        logger.info(config["base_folder"])
+        raise ValueError("No base folder found in config")
 
-    if not os.path.isfile(automation_config["macro_path"]):
-        msg = f"Macro not found: {automation_config['macro_path']}"
-        raise FileNotFoundError(f"Macro not found: {automation_config['macro_path']}")
+    if not os.path.isdir(base_folder):
+        msg = f"Base folder directory not found in file system: {base_folder}"
+        logger.error(msg)
+        raise FileNotFoundError(f"Base folder not found in file system: {base_folder}")
+
+    # detect macro and mastersheet files
+    mastersheet = [f for f in os.listdir(base_folder) if "mastersheet" in f.lower()]
+
+    if not mastersheet:
+        msg = f"Mastersheet not found in base folder: {base_folder}"
+        logger.error(msg)
+        raise FileNotFoundError(f"Mastersheet not found in base folder: {base_folder}")
+
+    macro = [f for f in os.listdir(base_folder) if "macro" in f.lower()]
+    if not macro:
+        msg = f"Macro not found in base folder: {base_folder}"
+        logger.error(msg)
+        raise FileNotFoundError(f"Macro not found in base folder: {base_folder}")
+
+    mastersheet_path = os.path.join(base_folder, mastersheet[0])
+    macro_path = os.path.join(base_folder, macro[0])
+
+    customer_config.update(
+        {"mastersheet_path": mastersheet_path, "macro_path": macro_path}
+    )
+
+    return customer_config
 
 
 def run_automation(
@@ -30,13 +54,13 @@ def run_automation(
     stop_after_create_macro: bool = False,
     logger=logger,
 ):
-    validate_config(automation_name, logger)
+    customer_config = validate_config(automation_name, logger)
     start_time = time.time()
 
     if "kohls" in automation_name.lower():
         KohlsMacroGenerator(
+            config=customer_config,
             source_folder=source_folder,
-            customer_name=automation_name,
             stop_after_create_macro=stop_after_create_macro,
         ).start()
 
