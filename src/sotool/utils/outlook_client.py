@@ -44,8 +44,8 @@ class OutlookClient:
             send_keys("^n")
             time.sleep(2)
 
-            email_window = self.app.window(title_re=".*Message\s*\(HTML\).*")
-            if not email_window.exists(timeout=60):
+            email_window = self.app.window(title="Untitled - Message (HTML)")
+            if not email_window.exists(timeout=30):
                 self.logger.error("Could not find email window")
                 raise Exception("Email window not found")
 
@@ -61,17 +61,14 @@ class OutlookClient:
             send_keys("{TAB}")
 
             send_keys(body_text, with_spaces=True, with_newlines=True)
-
             send_keys("{ENTER}{ENTER}")
             send_keys("^v")
             time.sleep(1)
 
-            email_window.set_focus()
             send_keys("^s")
             self.logger.info("Draft email saved.")
             self.logger.info("Closing email window.")
-            time.sleep(1)
-            email_window.set_focus()
+            time.sleep(2)
             send_keys("%{F4}")
             self.logger.info("Email window closed.")
 
@@ -84,11 +81,3 @@ class OutlookClient:
             self.app = None
             self.main_window = None
             self.logger.info("Disconnected from Outlook successfully.")
-
-
-OutlookClient().connect().create_mail_and_paste(
-    to="operations@company.com",
-    cc="manager@company.com",
-    subject="Subject",
-    body_text="This is a test mail",
-)
