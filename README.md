@@ -21,3 +21,30 @@ Before running the tool:
 - Make sure you have already logged into the SAP with your credentials.
 - Only Outlook (Classic) is supported at the moment, so have it opened and logged in with your credentials.
 - Keep only one window of Outlook open at a time.
+
+## Requirements
+
+- Python 3.13 or higher
+- uv package manager
+
+## Installation
+
+1. Clone the repository using below command or download the zip file
+```sh
+git clone https://github.com/fnx-io/so-automation.git
+```
+2. Run the application
+```sh
+cd so-automation && uv sync --native-tls
+uv run sotool
+```
+### Build instructions
+
+You can also build the application using PyInstaller to obtain a standalone executable.
+
+```sh
+uv sync --native-tls
+uv run main.py
+```
+
+You can find the executable in the `dist` directory.

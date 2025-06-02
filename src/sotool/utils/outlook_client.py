@@ -94,11 +94,3 @@ class OutlookClient:
             self.app = None
             self.main_window = None
             self.logger.info("Disconnected from Outlook successfully.")
-
-
-OutlookClient().connect().create_mail_and_paste(
-    to="test@test.com; ajay@ajay.com",
-    cc="test2@test.com; test@test2.com",
-    subject="Test",
-    body_text="This is a test email.",
-)
