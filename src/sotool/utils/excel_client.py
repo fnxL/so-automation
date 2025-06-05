@@ -1,4 +1,5 @@
 import win32com.client as win32
+from pywinauto.application import Application
 from loguru import logger
 
 
@@ -38,6 +39,18 @@ class ExcelClient:
 
     @staticmethod
     def close_workbook(workbook_title_contains: str, logger=logger):
+        try:
+            app = Application(backend="uia").connect(
+                title_re=f".*{workbook_title_contains}.*"
+            )
+            app.top_window().close()
+            logger.info(f"{workbook_title_contains}: Workbook closed successfully.")
+        except Exception as e:
+            logger.error(f"Failed to close workbook/no workbook found: {e}")
+            raise e
+
+    @staticmethod
+    def close_workbook_win32(workbook_title_contains: str, logger=logger):
         excel = None
         try:
             excel = win32.GetActiveObject("Excel.Application")
@@ -83,3 +96,8 @@ class ExcelClient:
         self.workbook.Close(SaveChanges=True)
         self.excel.Quit()
         self.logger.info("Excel closed successfully.")
+
+
+ExcelClient.close_workbook(
+    workbook_title_contains="DispatchReport",
+)
