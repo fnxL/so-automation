@@ -1,13 +1,13 @@
 import win32com.client
 import threading
 import time
-from Logger import Logger
+from loguru import logger
 from pywinauto import Application
 
 
 class SAPUtils:
     @staticmethod
-    def start_sap_alert_thread(logger: Logger):
+    def start_sap_alert_thread(logger=logger):
         sap_alert_thread = threading.Thread(
             target=SAPUtils.handle_sap_scripting_alert, args=(logger,)
         )
@@ -16,7 +16,7 @@ class SAPUtils:
         return sap_alert_thread
 
     @staticmethod
-    def connect_to_sap(logger: Logger):
+    def connect_to_sap(logger=logger):
         sap_alert_thread = threading.Thread(
             target=SAPUtils.handle_sap_scripting_alert, args=(logger,)
         )
@@ -54,13 +54,13 @@ class SAPUtils:
             raise e
 
     @staticmethod
-    def handle_sap_scripting_alert(logger: Logger):
+    def handle_sap_scripting_alert(logger=logger):
         try:
             app = Application().connect(path="saplogon.exe")
             alert = app.window(title="SAP Logon", class_name="#32770")
             alert.wait("exists", timeout=50000)
             alert["OK"].click()
-            logger.info("SAP GUI Scripting alert handled successfully.")
+            logger.success("SAP GUI Scripting alert handled successfully.")
         except Exception as e:
             logger.error(f"Error connecting to SAP GUI Window: {e}")
             logger.warning(

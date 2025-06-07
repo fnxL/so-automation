@@ -1,16 +1,18 @@
-import os
+from ..macro import MacroGenerator, MacroRunner
+from ..utils import (
+    format_number,
+    ExcelClient,
+    OutlookClient,
+    apply_borders,
+)
+from ..sap import SAPDispatchReport
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Tuple
-
+from .pdf_processor import process_pdf
 from openpyxl import load_workbook
-
-from .pdf_processor_kohls import process_pdf
-from config import CUSTOMER_CONFIGS
-from Logger import Logger
-from MacroRunner import MacroRunner
-from SAPDispatchReport import SAPDispatchReport
-from utils import get_df_from_excel, format_number, format_date
+import time
+import os
 
 
 @dataclass
@@ -25,77 +27,70 @@ class POData:
     notify: str
 
 
-class BaseMacroGenerator:
-    def __init__(self, source_folder: str, mastersheet_path: str, macro_path: str):
-        self.source_folder = source_folder
-        self.mastersheet_path = mastersheet_path
-        self.macro_path = macro_path
-
-        # Load excel files
-        self.mastersheet_df = get_df_from_excel(path=mastersheet_path)
-        self.macro_wb = load_workbook(filename=macro_path, keep_vba=True)
-        self.macro_ws = self.macro_wb.worksheets[0]
-
-    def _get_pdf_files(self) -> List[str]:
-        return [f for f in os.listdir(self.source_folder) if f.lower().endswith(".pdf")]
-
-    def _parse_ship_date(self, date_str: str):
-        return datetime.fromisoformat(date_str)
-
-    def _get_mastersheet_row(self, upc):
-        result = self.mastersheet_df.query(f"upc=={upc}")
-        if result.empty:
-            raise ValueError(f"No mastersheet row found for UPC: {upc}")
-        return result.iloc[0]
-
-
-class KohlsMacroGenerator(BaseMacroGenerator):
-    def __init__(
-        self,
-        source_folder: str,
-        mastersheet_path: str,
-        macro_path: str,
-        customer_name: str,
-        logger: Logger,
-        stopAfterMacro: bool = False,
-    ):
-        super().__init__(source_folder, mastersheet_path, macro_path)
-        self.logger = logger
-        self.stopAfterMacro = stopAfterMacro
-        self.customer_config = CUSTOMER_CONFIGS.get(customer_name)
-        self.pis_df = get_df_from_excel(path=mastersheet_path, sheet_name="PIS")
+class KohlsMacroGenerator(MacroGenerator):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def start(self):
-        pdf_files = self._get_pdf_files()
+        pdf_files = self._get_pdf_files_in_source_folder()
         if not pdf_files:
             self.logger.error("No PDF files found in the source folder.")
-            raise
+            raise FileNotFoundError("No PDF files found in the source folder.")
 
         self.logger.info(f"Found {len(pdf_files)} PDF files to process")
+
         for pdf_file in pdf_files:
             self._process_single_po(pdf_file)
 
-        macro_path = self._finalize_macro_file()
+        filled_macro_path = self._finalize_macro_file()
 
-        if self.stopAfterMacro:
+        if self.stop_after_create_macro:
             self.logger.success("Macro file created successfully. Stopping here.")
             return
 
-        MacroRunner(
-            macro_path=macro_path,
-            macro_name=self.customer_config["macro_name"],
+        MacroRunner.run(
+            macro_path=filled_macro_path,
+            macro_name=self.config["macro_name"],
             logger=self.logger,
-        ).run()
-
-        self.logger.info("Downloading SAP Dispatch Reports...")
-
-        reports = SAPDispatchReport(macro_path=macro_path, logger=self.logger).run()
-
-        self.logger.success(
-            f"{len(reports)} SAP Dispatch Reports downloaded successfully."
         )
 
-        self.logger.info("Creating draft email with SAP Dispatch Reports...")
+        self.reports = SAPDispatchReport(
+            macro_path=filled_macro_path, logger=self.logger
+        ).run()
+        self._create_draft_mail()
+
+        return True
+
+    def _create_draft_mail(self):
+        outlook_client = OutlookClient(logger=self.logger).connect()
+        for report in self.reports:
+            plant = str(report[0])
+            report_path = report[1]
+
+            # apply borders first
+            wb = load_workbook(filename=report_path)
+            ws = wb.active
+            apply_borders(ws)
+            wb.save(report_path)
+            time.sleep(2)
+
+            self.logger.info(f"Copying dispatch report to clipboard: {report_path}")
+            excel = ExcelClient(
+                report_path,
+                logger=self.logger,
+            ).open_excel()
+            excel.copy_table()
+
+            to = self.config["mail"][plant]["to"]
+            cc = self.config["mail"][plant]["cc"]
+            subject = self.config["mail"][plant]["subject"]
+            body = self.config["mail"][plant]["body_template"]
+            self.logger.info(f"Creating email for plant: {plant}")
+            outlook_client.create_mail_and_paste(to, cc, subject, body)
+            excel.cleanup()
+
+        outlook_client.disconnect()
+        self.logger.info("Draft emails created successfully.")
 
     def _parse_po_metadata(self, po_metadata: dict) -> POData:
         ship_start_date = self._parse_ship_date(po_metadata["ship_start_date"])
@@ -105,7 +100,7 @@ class KohlsMacroGenerator(BaseMacroGenerator):
         )
         packing_type = "BULK" if po_metadata["channel_type"] == "RETAIL" else "ECOM"
         notify = (
-            self.customer_config["notify_address"]
+            self.config["notify_address"]
             if "notify" in po_metadata
             else "2% commission to WUSA"
         )
@@ -145,12 +140,12 @@ class KohlsMacroGenerator(BaseMacroGenerator):
         sales_unit = mastersheet_row["sales unit"]
         design = str(mastersheet_row["design"]).lower().strip()
 
-        if design in self.customer_config["design_split"]:
+        if design in self.config["design_split"]:
             return f"{design}_{sales_unit}"
         return sales_unit
 
     def _get_adjusted_po(self, base_po: int | str, design: str):
-        if design in self.customer_config["design_split"]:
+        if design in self.config["design_split"]:
             return f"{base_po} {design}"
         return base_po
 
@@ -213,7 +208,7 @@ class KohlsMacroGenerator(BaseMacroGenerator):
             102083,  # SHIP TO PARTY
             "W137",  # PAYMENT TERM
             "",  # INCO TERMS
-            "",  # INCO TERM 2
+            "JNPT / MUNDRA",  # INCO TERM 2
             "",  # order reason
             100023,  # end customer
             po_data.channel_type,
@@ -265,17 +260,20 @@ class KohlsMacroGenerator(BaseMacroGenerator):
             self.macro_ws.append([""])  # Add a blank row after each group
 
     def _finalize_macro_file(self):
-        format_number(self.macro_ws, 32)  # UPC column long number format
-        format_date(
-            self.macro_ws, startcol=13, endcol=14, date_format="DD-MM-YYYY"
+        format_number(
+            self.macro_ws, startcol=32, endcol=32, format="0"
+        )  # UPC column long number format
+
+        format_number(
+            self.macro_ws, startcol=13, endcol=14, format="DD-MM-YYYY"
         )  # ship dates
 
         # Set source folder in macro file
-        self.macro_ws[self.customer_config["source_folder_cell"]] = self.source_folder
+        self.macro_ws[self.config["source_folder_cell"]] = self.source_folder
 
         # Save filled macro
-        macro_filename = "FILLED" + os.path.basename(self.macro_path)
+        macro_filename = "FILLED_" + os.path.basename(self.macro_path)
         output_path = os.path.join(self.source_folder, macro_filename)
         self.macro_wb.save(output_path)
-        self.logger.success(f'Macro file saved to "{output_path}"')
+        self.logger.info(f'Macro file saved to "{output_path}"')
         return output_path

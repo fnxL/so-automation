@@ -2,23 +2,26 @@ import win32clipboard
 import time
 import os
 from datetime import datetime
-from Logger import Logger
-from utils import get_df_from_excel
-from SAPUtils import SAPUtils
+from loguru import logger
+from ..utils import get_df_from_excel, SAPUtils, ExcelClient
 
 
 class SAPDispatchReport:
-    def __init__(self, macro_path: str, logger: Logger):
+    def __init__(self, macro_path: str, logger=logger):
         self.macro_path = macro_path
-        self.logger = logger
         self.source_folder = os.path.dirname(macro_path)
         self.session = SAPUtils.connect_to_sap(logger)
+        self.logger = logger
 
     def run(self):
         reports = self._download_dispatch_reports()
+        self.logger.success(
+            f"{len(reports)} SAP Dispatch Reports downloaded successfully."
+        )
         return reports
 
     def _download_dispatch_reports(self):
+        self.logger.info("Downloading SAP Dispatch Reports...")
         so_list = self._get_so_list()
         result = []
         print(so_list)
@@ -45,9 +48,13 @@ class SAPDispatchReport:
             self.session.findById("wnd[1]/tbar[0]/btn[0]").press()
             self.session.findById("wnd[0]/tbar[0]/btn[3]").press()
             self.session.findById("wnd[0]/tbar[0]/btn[3]").press()
-
             file_path = os.path.join(self.source_folder, file_name)
-            result.append(file_path)
+            result.append((plant, file_path))
+            time.sleep(5)
+            ExcelClient.close_workbook(
+                workbook_title_contains="DispatchReport", logger=self.logger
+            )
+
         return result
 
     def _copy_list_to_clipboard(self, so_list):
