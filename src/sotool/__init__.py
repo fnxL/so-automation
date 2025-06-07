@@ -1,5 +1,5 @@
 import ttkbootstrap as ttk
-from .gui import SOAutomation
+from .ui.main_window import SOAutomation
 
 
 def main():
