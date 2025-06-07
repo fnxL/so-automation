@@ -58,7 +58,7 @@ class OutlookClient:
             title_re=".*Outlook.*", class_name="rctrl_renwnd32"
         )
         self.main_window.wait("ready", timeout=60)
-        self.main_window.set_focus()
+
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):

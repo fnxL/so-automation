@@ -1,8 +1,8 @@
 import sys
 import ttkbootstrap as ttk
 import threading
-from .logger import Logger
-from .config import config
+from ..logger import Logger
+from ..config import config
 from .dialogs import Dialog
 from tkinter.filedialog import askdirectory
 from ..app import run_automation
