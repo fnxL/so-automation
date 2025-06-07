@@ -47,15 +47,19 @@ class KohlsMacroGenerator(MacroGenerator):
         if self.stop_after_create_macro:
             self.logger.success("Macro file created successfully. Stopping here.")
             return
+
         MacroRunner.run(
             macro_path=filled_macro_path,
             macro_name=self.config["macro_name"],
             logger=self.logger,
         )
+
         self.reports = SAPDispatchReport(
             macro_path=filled_macro_path, logger=self.logger
         ).run()
         self._create_draft_mail()
+
+        return True
 
     def _create_draft_mail(self):
         outlook_client = OutlookClient(logger=self.logger).connect()
@@ -83,6 +87,7 @@ class KohlsMacroGenerator(MacroGenerator):
             body = self.config["mail"][plant]["body_template"]
             self.logger.info(f"Creating email for plant: {plant}")
             outlook_client.create_mail_and_paste(to, cc, subject, body)
+            excel.cleanup()
 
         outlook_client.disconnect()
         self.logger.info("Draft emails created successfully.")

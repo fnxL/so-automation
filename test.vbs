@@ -96,6 +96,7 @@ Public Sub CreateTowelSalesOrders()
 End Sub
 
 Private Sub CreateNewSaleOrder(ByVal headerRow as Long)
+    MsgBox "Creating SO For Row: " & headerRow
     ' Create SO (va01)
     session.findById("wnd[0]/tbar[0]/okcd").Text = "/nva01"
     Call FillInitalOrgData()
@@ -121,53 +122,46 @@ Private Sub CreateNewSaleOrder(ByVal headerRow as Long)
 
     Dim lineItemRow As Long
     Dim lineItemCounter As Long
-    Dim tempLineItemCounter as Long
+    DIm tempLineItemCounter as Long
     Dim linesInCurrentOrder As Long
     Dim gridRow As Long
     Dim savedSONumber As String
-
     lineItemRow = headerRow
-    lineItemCounter = 0
+    lineItemCounter = 1
     While ws.Cells(lineItemRow, COL_MATERIAL).Value <> 0
         If tempLineItemCounter > 0 And tempLineItemCounter Mod 9 = 0 Then
             session.findById("wnd[0]").sendVKey KEY_ENTER
             tempLineItemCounter = tempLineItemCounter + 1
         End If
         gridRow = tempLineItemCounter Mod 9
-        ' Fill data for one line item
-        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MABNR[2," & gridRow & "]").Text = ws.Cells(lineItemRow, COL_MATERIAL).Value
+        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MABNR[2," & gridRow & "]").text = ws.Cells(lineItemRow, COL_MATERIAL).Value
 
-        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/txtRV45A-KWMENG[3," & gridRow & "]").Text = ws.Cells(lineItemRow, COL_QUANTITY).Value
+        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/txtRV45A-KWMENG[3," & gridRow & "]").Text = lineItemCounter
 
-        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MWERT01[6," & gridRow & "]").Text = ws.Cells(lineItemRow, COL_TT_SORT_NO).Value
+        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MWERT01[7," & gridRow & "]").text = ws.Cells(lineItemRow, COL_TT_SORT_NO).Value
 
-        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MWERT02[7," & gridRow & "]").Text = ws.Cells(lineItemRow, COL_TT_SHADE).Value
 
-        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MWERT03[8," & gridRow & "]").Text = ws.Cells(lineItemRow, COL_TT_SET_TYPE).Value
+        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MWERT08[8," & gridRow & "]").text = ws.Cells(lineItemRow, COL_DESTINATION).Value
 
-        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MWERT04[9," & gridRow & "]").Text = ws.Cells(lineItemRow, COL_EMB_CODE).Value
+        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MWERT02[9," & gridRow & "]").text = ws.Cells(lineItemRow, COL_TT_SHADE).Value
 
-        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MWERT05[10," & gridRow & "]").Text = ws.Cells(lineItemRow, COL_SUBLISTATIC_CODE).Value
+        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MWERT06[13," & gridRow & "]").text = ws.Cells(lineItemRow, COL_TT_S_PART).Value
 
-        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MWERT06[11," & gridRow & "]").Text = ws.Cells(lineItemRow, COL_TT_S_PART).Value
+        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MWERT07[15," & gridRow & "]").text = ws.Cells(lineItemRow, COL_TT_F_PART).Value
 
-        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MWERT07[12," & gridRow & "]").Text = ws.Cells(lineItemRow, COL_TT_F_PART).Value
+        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtVBAP-WERKS[20," & gridRow & "]").text = ws.Cells(lineItemRow, COL_PLANT).Value
 
-        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MWERT08[13," & gridRow & "]").Text = ws.Cells(lineItemRow, COL_DESTINATION).Value
-
-        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtRV45A-MWERT09[14," & gridRow & "]").Text = ws.Cells(lineItemRow, COL_YD_MATCHING).Value
-
-        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtVBAP-WERKS[19," & gridRow & "]").Text = ws.Cells(lineItemRow, COL_PLANT).Value
-
-        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtVBAP-KDMAT[29," & gridRow & "]").Text = ws.Cells(lineItemRow, COL_CUSTOMER_MATERIAL).Value
-
+        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/txtKOMV-KBETR[4," & gridRow & "]").text = "1"
+        session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/tblSAPMV45ATCTRL_U_MILL_SE_KONFIG/ctxtVBAP-KDMAT[29," & gridRow & "]").text = ws.Cells(lineItemRow, COL_CUSTOMER_MATERIAL).Value
 
         lineItemCounter = lineItemCounter + 1
         tempLineItemCounter = tempLineItemCounter + 1
         lineItemRow = lineItemRow + 1
 
     Wend
+
     linesInCurrentOrder = lineItemCounter
+    MsgBox "Lines in current order: " & linesInCurrentOrder
     session.findById("wnd[0]").sendVKey KEY_ENTER
 
     ' PIS
@@ -181,16 +175,20 @@ Private Sub CreateNewSaleOrder(ByVal headerRow as Long)
 
     ' Press Enter
     Dim i As Long
-    For i = 0 To linesInCurrentOrder - 1
-        session.findById("wnd[1]/tbar[0]/btn[0]").press
+    For i = 0 To linesInCurrentOrder + 1
+        session.findById("wnd[1]").sendVKey KEY_ENTER
     Next i
 
     ' Save Sales Document
     session.findById("wnd[0]/tbar[0]/btn[11]").press
 
+    MsgBox "Saved Success"
+
     Dim statusBarMessage As String
     statusBarMessage = session.findById("wnd[0]/sbar").Text
     savedSONumber = Split(statusBarMessage, " ")(3)
+
+    MsgBox "Saved SO Number: " & savedSONumber
 
     ' Update Excel
     If IsNumeric(savedSONumber) Then

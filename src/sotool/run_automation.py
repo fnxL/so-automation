@@ -65,7 +65,6 @@ def run_automation(
                 stop_after_create_macro=stop_after_create_macro,
                 logger=logger,
             ).start()
-            return
         case "kohls_rugs":
             KohlsRugs(
                 config=customer_config,
