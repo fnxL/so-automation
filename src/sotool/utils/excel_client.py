@@ -31,6 +31,7 @@ class ExcelClient:
             )
         except Exception as e:
             self.logger.warning(f"Macro error: {e}")
+            raise e
 
     def copy_table(self, sheet=1):
         sheet = self.workbook.Sheets(sheet)

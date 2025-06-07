@@ -203,7 +203,7 @@ class KohlsMacroGenerator(MacroGenerator):
             102083,  # SHIP TO PARTY
             "W137",  # PAYMENT TERM
             "",  # INCO TERMS
-            "",  # INCO TERM 2
+            "JNPT / MUNDRA",  # INCO TERM 2
             "",  # order reason
             100023,  # end customer
             po_data.channel_type,
