@@ -1,5 +1,5 @@
 from ..macro import MacroGenerator, MacroRunner
-from ..utils import (
+from ..integrations import (
     format_number,
     ExcelClient,
     OutlookClient,

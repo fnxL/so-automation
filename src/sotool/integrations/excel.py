@@ -1,0 +1,169 @@
+import win32com.client as win32
+import pandas as pd
+from pywinauto.application import Application
+from loguru import logger
+from openpyxl.worksheet.worksheet import Worksheet
+from openpyxl.styles import Border, Side, Alignment
+
+
+class ExcelClient:
+    """
+    Usage:
+    ```python
+    try:
+        with ExcelClient("path/to/excel/file.xlsx") as excel:
+            excel.copy_used_range()
+    except Exception as e:
+        logger.error(f"Error: {e}")
+    """
+
+    def __init__(self, excel_path, logger=logger, visible: bool = True):
+        self.excel_path = excel_path
+        self.logger = logger
+        self.visible = visible
+        self.excel = None
+        self.workbook = None
+
+    def __enter__(self):
+        self.logger.info("Starting Excel application via COM...")
+        try:
+            self.excel = win32.Dispatch("Excel.Application")
+            self.excel.Visible = self.visible
+
+            self.logger.info(f"Opening workbook: {self.excel_path}")
+            self.workbook = self.excel.Workbooks.Open(self.excel_path)
+            return self
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Excel or open workbook: {e}")
+            self.cleanup()
+            raise e
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.logger.info("Cleaning up Excel application instance...")
+        self.cleanup()
+
+    def cleanup(self):
+        self.excel.DisplayAlerts = False
+        if self.workbook:
+            try:
+                self.workbook.Close(SaveChanges=True)
+                self.logger.info("Workbook closed and saved.")
+            except Exception as e:
+                self.logger.warning(f"Could not close workbook: {e}")
+            self.workbook = None
+
+        if self.excel_app:
+            try:
+                self.excel_app.Quit()
+                self.logger.info("Excel application quit.")
+            except Exception as e:
+                self.logger.warning(f"Could not quit Excel application: {e}")
+            self.excel_app = None
+
+    def run_macro(self, macro_name: str):
+        if not self.excel_app:
+            raise RuntimeError(
+                "Excel application is not running. Use within a 'with' block."
+            )
+        try:
+            self.logger.info(f"Running macro: {macro_name}")
+            self.excel.Application.Run(macro_name)
+            self.logger.success(f"Macro '{macro_name}' executed  successfully.")
+        except Exception as e:
+            self.logger.warning(f"An error occurred while running macro: {e}")
+            raise e
+
+    def copy_used_range(self, sheet_index=1):
+        if not self.workbook:
+            raise RuntimeError("Workbook is not open. Use within a 'with' block.")
+
+        sheet = self.workbook.Sheets(sheet_index)
+        sheet.UsedRange.Copy()
+        self.logger.info(f"Copied entire used range from Sheet {sheet_index}.")
+        return
+
+
+def find_and_close_workbook(title_contains: str, logger=logger):
+    try:
+        app = Application(backend="uia").connect(title_re=f".*{title_contains}.*")
+        app.top_window().close()
+        logger.info(f"{title_contains}: Workbook closed successfully.")
+    except Exception as e:
+        logger.error(f"Failed to close workbook/no workbook found: {e}")
+        raise e
+
+
+def find_and_close_workbook_win32(
+    title_contains: str, save_changes: bool = False, logger=logger
+):
+    excel = None
+    try:
+        excel = win32.GetActiveObject("Excel.Application")
+        logger.success("Connected to DispatchReport Excel instance")
+    except Exception as e:
+        logger.error(f"Failed to connect to Excel/No Excel instance found: {e}")
+        return False
+
+    try:
+        if excel.Workbooks.Count == 0:
+            logger.info("No workbooks are currently open")
+            return False
+
+        dispatch_workbooks = []
+        for i in range(1, excel.Workbooks.Count + 1):
+            wb = excel.Workbooks(i)
+            if title_contains in wb.Name:
+                dispatch_workbooks.append(wb)
+                logger.info(f"Found matching workbook: {wb.Name}")
+
+        # Close found workbooks
+        for wb in dispatch_workbooks:
+            try:
+                wb_name = wb.Name
+                excel.DisplayAlerts = False
+                wb.Close(SaveChanges=save_changes)
+                excel.DisplayAlerts = True
+                logger.success(f"Successfully closed workbook: {wb_name}")
+            except Exception as e:
+                logger.error(f"Error closing workbook {wb.Name}: {e}")
+
+        return len(dispatch_workbooks) > 0
+
+    except Exception as e:
+        logger.error(f"Error while searching for workbooks: {e}")
+        return False
+    finally:
+        if excel:
+            excel = None
+
+
+# openpyxl utilities
+def get_df_from_excel(path: str, sheet_name: str | int = 0, **kwargs) -> pd.DataFrame:
+    df = pd.read_excel(io=path, engine="calamine", sheet_name=sheet_name, **kwargs)
+    df.columns = df.columns.str.strip()
+    df.columns = df.columns.str.lower()
+    return df
+
+
+def format_number(ws: Worksheet, startcol=0, endcol=1, format="0"):
+    for row in ws.iter_cols(min_col=startcol, max_col=endcol):
+        for cell in row:
+            cell.number_format = format
+    return
+
+
+def apply_borders(ws: Worksheet, text_center=False):
+    thin_border = Border(
+        left=Side(style="thin"),
+        right=Side(style="thin"),
+        top=Side(style="thin"),
+        bottom=Side(style="thin"),
+    )
+    text_center = Alignment(horizontal="center", vertical="center")
+
+    for row in ws.iter_rows(min_row=1, max_row=ws.max_row):
+        for cell in row:
+            cell.border = thin_border
+            if text_center:
+                cell.alignment = text_center
+    return

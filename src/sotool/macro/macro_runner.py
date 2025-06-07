@@ -1,5 +1,5 @@
 from loguru import logger
-from ..utils import ExcelClient, SAPUtils
+from ..integrations import ExcelClient, SAPUtils
 import time
 
 

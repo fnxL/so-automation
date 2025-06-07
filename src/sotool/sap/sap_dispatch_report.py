@@ -3,7 +3,7 @@ import time
 import os
 from datetime import datetime
 from loguru import logger
-from ..utils import get_df_from_excel, SAPUtils, ExcelClient
+from ..integrations import get_df_from_excel, SAPUtils, ExcelClient
 
 
 class SAPDispatchReport:

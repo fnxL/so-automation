@@ -1,5 +1,5 @@
 from loguru import logger
-from ..utils import get_df_from_excel
+from ..integrations import get_df_from_excel
 from openpyxl import load_workbook
 from datetime import datetime
 import os

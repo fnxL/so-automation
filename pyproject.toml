@@ -18,6 +18,12 @@ dependencies = [
     "ttkbootstrap>=1.13.8",
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-mock", # Crucial for mocking external systems
+]
+
 [project.gui-scripts]
 sotool = "sotool:main"
 
