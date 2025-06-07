@@ -24,7 +24,7 @@ test = [
     "pytest-mock", # Crucial for mocking external systems
 ]
 
-[project.gui-scripts]
+[project.scripts]
 sotool = "sotool:main"
 
 [build-system]

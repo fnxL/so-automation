@@ -39,7 +39,7 @@ class KohlsAutomation:
         # Load data
         self.mastersheet_df = get_df_from_excel(path=self._mastersheet_path)
         self.pis_df = get_df_from_excel(path=self._mastersheet_path, sheet_name="PIS")
-        self.macro_wb = load_workbook(filename=self.macro_path, keep_vba=True)
+        self.macro_wb = load_workbook(filename=self._macro_path, keep_vba=True)
         self.macro_ws = self.macro_wb.worksheets[0]
 
     def start(self, stop_after_create_macro: bool = False):
@@ -230,7 +230,7 @@ class KohlsAutomation:
         self.macro_ws[self.config["source_folder_cell"]] = self.source_folder
 
         # Save filled macro
-        macro_filename = "FILLED_" + os.path.basename(self.macro_path)
+        macro_filename = "FILLED_" + os.path.basename(self._macro_path)
         output_path = os.path.join(self.source_folder, macro_filename)
         self.macro_wb.save(output_path)
         self.logger.info(f'Macro file saved to "{output_path}"')

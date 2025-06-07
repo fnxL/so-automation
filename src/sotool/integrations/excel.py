@@ -52,16 +52,16 @@ class ExcelClient:
                 self.logger.warning(f"Could not close workbook: {e}")
             self.workbook = None
 
-        if self.excel_app:
+        if self.excel:
             try:
-                self.excel_app.Quit()
+                self.excel.Quit()
                 self.logger.info("Excel application quit.")
             except Exception as e:
                 self.logger.warning(f"Could not quit Excel application: {e}")
-            self.excel_app = None
+            self.excel = None
 
     def run_macro(self, macro_name: str):
-        if not self.excel_app:
+        if not self.excel:
             raise RuntimeError(
                 "Excel application is not running. Use within a 'with' block."
             )

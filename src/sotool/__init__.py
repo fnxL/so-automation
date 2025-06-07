@@ -1,3 +1,6 @@
+import sys
+
+sys.coinit_flags = 2  # COINIT_APARTMENTTHREADED
 import ttkbootstrap as ttk
 from .ui.main_window import SOAutomation
 
