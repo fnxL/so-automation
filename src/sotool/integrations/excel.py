@@ -3,6 +3,7 @@ import pandas as pd
 import re
 from pywinauto.application import Application
 from loguru import logger
+from ..integrations.sap_connector import start_sap_alert_thread
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.styles import Border, Side, Alignment
 
@@ -63,15 +64,18 @@ class ExcelClient:
     def run_macro(self, macro_name: str):
         if not self.workbook:
             raise RuntimeError("Workbook is not open. Please open the workbook first")
-
+        sap_alert_thread = start_sap_alert_thread(logger=self.logger)
         try:
             self.logger.info(f"Running macro: {macro_name}")
             self.excel.Application.Run(macro_name)
             self.logger.success(f"Macro '{macro_name}' executed  successfully.")
+            sap_alert_thread.join(timeout=5)
             return True
         except Exception as e:
             self.logger.warning(f"An error occurred while running macro: {e}")
             raise e
+        finally:
+            sap_alert_thread.join(timeout=5)
 
     def copy_used_range(self, sheet_index=1):
         if not self.workbook:
@@ -87,7 +91,6 @@ class ExcelClient:
         title_contains: str,
         save_changes: bool = False,
     ):
-
         try:
             if self.excel.Workbooks.Count == 0:
                 self.logger.info("No workbooks are currently open")

@@ -2,6 +2,7 @@ from .kohls import Kohls, POData
 from ...integrations import ExcelClient
 from ..sap_dispatch_report import download_dispatch_reports
 from sotool.utils import get_pdf_files_in_path
+from ...integrations.sap_connector import start_sap_alert_thread
 
 
 class KohlsTowel(Kohls):
