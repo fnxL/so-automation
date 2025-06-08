@@ -1,5 +1,6 @@
 import win32com.client as win32
 import pandas as pd
+import re
 from pywinauto.application import Application
 from loguru import logger
 from openpyxl.worksheet.worksheet import Worksheet
@@ -87,7 +88,7 @@ def find_and_close_workbook(title_contains: str, logger=logger):
     try:
         app = Application(backend="uia").connect(title_re=f".*{title_contains}.*")
         app.top_window().close()
-        logger.info(f"{title_contains}: Workbook closed successfully.")
+        logger.info(f"{re.escape(title_contains)}: Workbook closed successfully.")
     except Exception as e:
         logger.error(f"Failed to close workbook/no workbook found: {e}")
         raise e

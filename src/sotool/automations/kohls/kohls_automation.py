@@ -2,7 +2,6 @@ from loguru import logger
 from ...integrations.excel import get_df_from_excel, format_number, apply_borders
 from ...integrations.pdf_parser import process_pdf
 from ...integrations import ExcelClient, OutlookClient
-from ..sap_dispatch_report import download_dispatch_reports
 from openpyxl import load_workbook
 from datetime import datetime
 from dataclasses import dataclass
@@ -33,45 +32,19 @@ class KohlsAutomation:
         self.config = config
         self.logger = logger
         self.source_folder = source_folder
+        self.load_config()
+
+        self.macro_wb = None
+        self.macro_ws = None
+        self.mastersheet_df = None
+        self.pis_df = None
+
+    def load_config(self):
         self._macro_path = self.config["macro_path"]
         self._mastersheet_path = self.config["mastersheet_path"]
-
-        # Load data
-        self.mastersheet_df = get_df_from_excel(path=self._mastersheet_path)
-        self.pis_df = get_df_from_excel(path=self._mastersheet_path, sheet_name="PIS")
-        self.macro_wb = load_workbook(filename=self._macro_path, keep_vba=True)
-        self.macro_ws = self.macro_wb.worksheets[0]
-
-    def start(self, stop_after_create_macro: bool = False):
-        pdf_files = self._get_pdf_files(self.source_folder)
-        if not pdf_files:
-            self.logger.error("No PDF files found in the source folder.")
-            raise FileNotFoundError("No PDF files found in the source folder.")
-
-        self.logger.info(f"Found {len(pdf_files)} PO files to process")
-
-        for pdf_file in pdf_files:
-            self._process_single_po(pdf_file)
-
-        filled_macro_path = self._finalize_macro_file()
-
-        if stop_after_create_macro:
-            self.logger.success("Macro file created successfully. Stopping here.")
-            return
-
-        # Run Macro
-        with ExcelClient(filled_macro_path, logger=self.logger) as excel:
-            excel.run_macro(self.config["macro_name"])
-
-        # Get Reports
-        reports = download_dispatch_reports(
-            macro_path=filled_macro_path,
-            source_folder=self.source_folder,
-            logger=self.logger,
-        )
-        # Create Mails
-        self._create_draft_mails(reports)
-        return True
+        self._notify_address = self.config["notify_address"]
+        self._design_split = self.config["design_split"]
+        self._source_folder_cell = self.config["source_folder_cell"]
 
     def _create_draft_mails(self, reports):
         with OutlookClient(self.logger) as outlook:
@@ -106,6 +79,9 @@ class KohlsAutomation:
         return datetime.fromisoformat(date_str)
 
     def _get_mastersheet_row(self, upc):
+        if self.mastersheet_df is None:
+            self.mastersheet_df = get_df_from_excel(path=self._mastersheet_path)
+
         result = self.mastersheet_df.query(f"upc=={upc}")
         if result.empty:
             self.logger.error(f"No mastersheet row found for UPC: {upc}")
@@ -170,6 +146,11 @@ class KohlsAutomation:
         return base_po
 
     def _get_pis_data(self, mastersheet_row, po_data: POData):
+        if self.pis_df is None:
+            self.pis_df = get_df_from_excel(
+                path=self._mastersheet_path, sheet_name="PIS"
+            )
+
         sales_unit = mastersheet_row["sales unit"]
         program_name = mastersheet_row["program name"]
         packing_type = po_data.packing_type
@@ -212,6 +193,10 @@ class KohlsAutomation:
         self._write_rows_to_worksheet(row_data)
 
     def _write_rows_to_worksheet(self, row_data):
+        if self.macro_ws is None:
+            self.macro_wb = load_workbook(filename=self._macro_path, keep_vba=True)
+            self.macro_ws = self.macro_wb.worksheets[0]
+
         for group, rows in row_data.items():
             for row in rows:
                 self.macro_ws.append(row)
@@ -234,4 +219,5 @@ class KohlsAutomation:
         output_path = os.path.join(self.source_folder, macro_filename)
         self.macro_wb.save(output_path)
         self.logger.info(f'Macro file saved to "{output_path}"')
+
         return output_path

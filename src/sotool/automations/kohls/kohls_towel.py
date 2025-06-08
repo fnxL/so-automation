@@ -1,9 +1,42 @@
 from .kohls_automation import KohlsAutomation, POData
+from ...integrations import ExcelClient
+from ..sap_dispatch_report import download_dispatch_reports
 
 
 class KohlsTowelAutomation(KohlsAutomation):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def start(self, stop_after_create_macro: bool = False):
+        pdf_files = self._get_pdf_files(self.source_folder)
+        if not pdf_files:
+            self.logger.error("No PDF files found in the source folder.")
+            raise FileNotFoundError("No PDF files found in the source folder.")
+
+        self.logger.info(f"Found {len(pdf_files)} PO files to process")
+
+        for pdf_file in pdf_files:
+            self._process_single_po(pdf_file)
+
+        filled_macro_path = self._finalize_macro_file()
+
+        if stop_after_create_macro:
+            self.logger.success("Macro file created successfully. Stopping here.")
+            return
+
+        # Run Macro
+        with ExcelClient(filled_macro_path, logger=self.logger) as excel:
+            excel.run_macro(self.config["macro_name"])
+
+        # Get Reports
+        reports = download_dispatch_reports(
+            macro_path=filled_macro_path,
+            source_folder=self.source_folder,
+            logger=self.logger,
+        )
+        # Create Mails
+        self._create_draft_mails(reports)
+        return True
 
     def _create_macro_row(
         self,
