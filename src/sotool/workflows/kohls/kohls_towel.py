@@ -1,9 +1,9 @@
-from .kohls_automation import KohlsAutomation, POData
+from .kohls import Kohls, POData
 from ...integrations import ExcelClient
 from ..sap_dispatch_report import download_dispatch_reports
 
 
-class KohlsTowelAutomation(KohlsAutomation):
+class KohlsTowel(Kohls):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

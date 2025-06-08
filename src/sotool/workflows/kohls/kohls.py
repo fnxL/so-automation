@@ -22,7 +22,7 @@ class POData:
     notify: str
 
 
-class KohlsAutomation:
+class Kohls:
     def __init__(
         self,
         config,

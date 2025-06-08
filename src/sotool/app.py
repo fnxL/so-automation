@@ -1,6 +1,6 @@
 from .config import config
 from loguru import logger
-from .automations.kohls.kohls_towel import KohlsTowelAutomation
+from .workflows.kohls import KohlsTowel
 import time
 import os
 
@@ -58,7 +58,7 @@ def run_automation(
 
     match automation_name.lower():
         case "kohls_towel":
-            KohlsTowelAutomation(
+            KohlsTowel(
                 config=customer_config,
                 source_folder=source_folder,
                 logger=logger,
