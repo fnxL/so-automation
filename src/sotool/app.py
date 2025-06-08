@@ -1,6 +1,6 @@
 from .config import config
 from loguru import logger
-from .kohls import KohlsMacroGenerator, KohlsRugs
+from .workflows.kohls import KohlsTowel
 import time
 import os
 
@@ -26,7 +26,6 @@ def validate_config(automation_name, logger=logger):
 
     # detect macro and mastersheet files
     mastersheet = [f for f in os.listdir(base_folder) if "mastersheet" in f.lower()]
-
     if not mastersheet:
         msg = f"Mastersheet not found in base folder: {base_folder}"
         logger.error(msg)
@@ -59,19 +58,11 @@ def run_automation(
 
     match automation_name.lower():
         case "kohls_towel":
-            KohlsMacroGenerator(
+            KohlsTowel(
                 config=customer_config,
                 source_folder=source_folder,
-                stop_after_create_macro=stop_after_create_macro,
                 logger=logger,
-            ).start()
-        case "kohls_rugs":
-            KohlsRugs(
-                config=customer_config,
-                source_folder=source_folder,
-                stop_after_create_macro=stop_after_create_macro,
-                logger=logger,
-            ).start()
+            ).start(stop_after_create_macro=stop_after_create_macro)
 
     end_time = time.time()
     total_time = end_time - start_time

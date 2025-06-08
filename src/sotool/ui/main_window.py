@@ -1,15 +1,11 @@
 import sys
-
-sys.coinit_flags = 2  # COINIT_APARTMENTTHREADED
-
 import ttkbootstrap as ttk
 import threading
-from .logger import Logger
-from .config import config
-from datetime import datetime
-from .dialog import Dialog
+from ..logger import Logger
+from ..config import config
+from .dialogs import Dialog
 from tkinter.filedialog import askdirectory
-from .run_automation import run_automation
+from ..app import run_automation
 from ttkbootstrap.constants import *
 
 
