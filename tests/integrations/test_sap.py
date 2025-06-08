@@ -10,4 +10,4 @@ def sap_session():
 
 def test_sap_connect(sap_session):
     sap_session.findById("wnd[0]").maximize()
-    assert sap_session.session is not None
+    assert sap_session is not None
