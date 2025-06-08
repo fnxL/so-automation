@@ -14,7 +14,7 @@ def test_outlook_client_connect():
 def test_create_draft_email_flow():
     # Copy test data to clipboard
     abs_path = os.path.abspath(test_dispatch_report_path)
-    with ExcelClient() as excel:
+    with ExcelClient(visible=False) as excel:
         excel.open(abs_path)
         excel.copy_used_range()
 

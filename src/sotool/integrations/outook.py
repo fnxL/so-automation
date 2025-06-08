@@ -115,7 +115,9 @@ class OutlookClient:
                 email_window.type_keys("{ENTER}{ENTER}^v")
 
             self.logger.info("Saving and closing draft email window...")
-            email_window.type_keys("^s")
+            time.sleep(2)
+            email_window.set_focus()
+            send_keys("^s")
             time.sleep(2)
             email_window.close()
             self.logger.info("Draft email created and saved.")

@@ -51,7 +51,7 @@ class Kohls:
                 self.logger.info(
                     f"Copying dispatch report to clipboard: {ok_report_path}"
                 )
-                with ExcelClient(logger=self.logger) as excel:
+                with ExcelClient(logger=self.logger, visible=True) as excel:
                     excel.open(ok_report_path)
                     excel.copy_used_range()
 
