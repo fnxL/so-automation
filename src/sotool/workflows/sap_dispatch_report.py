@@ -79,6 +79,6 @@ def download_dispatch_reports(macro_path: str, source_folder: str, logger=logger
             downloaded_reports.append((plant, file_path))
             time.sleep(5)
             with ExcelClient(logger=logger) as excel:
-                excel.find_and_close_workbook(title_contains="DispatchReport")
+                excel.find_and_close_workbooks(title_contains="DispatchReport")
     logger.success(f"Finished downloading {len(downloaded_reports)} dispatch reports.")
     return downloaded_reports

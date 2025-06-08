@@ -68,6 +68,7 @@ class ExcelClient:
             self.logger.info(f"Running macro: {macro_name}")
             self.excel.Application.Run(macro_name)
             self.logger.success(f"Macro '{macro_name}' executed  successfully.")
+            return True
         except Exception as e:
             self.logger.warning(f"An error occurred while running macro: {e}")
             raise e
@@ -81,11 +82,12 @@ class ExcelClient:
         self.logger.info(f"Copied entire used range from Sheet {sheet_index}.")
         return
 
-    def find_and_close_workbook(
+    def find_and_close_workbooks(
         self,
         title_contains: str,
         save_changes: bool = False,
     ):
+
         try:
             if self.excel.Workbooks.Count == 0:
                 self.logger.info("No workbooks are currently open")

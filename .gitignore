@@ -1,9 +1,5 @@
 uploads/
 .venv/
-*.xls
-*.xlsm
-*.xlsx
-*.xlsb
 *.pdf
 *.pyc
 .ruff_cache/

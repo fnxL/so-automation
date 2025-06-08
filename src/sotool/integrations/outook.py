@@ -80,6 +80,10 @@ class OutlookClient:
         self.app = None
         self.main_window = None
 
+    def close(self):
+        self.main_window.close()
+        return True
+
     def create_draft_mail(
         self, to="", cc="", subject="", body="", paste_from_clipboard=False
     ):
@@ -91,7 +95,7 @@ class OutlookClient:
         send_keys("^n")
         try:
             email_window = self.app.window(title_re=".*Untitled - Message.*")
-            email_window.wait("exists", timeout=60)
+            email_window.wait("ready", timeout=60)
 
             email_window.set_focus()
             email_window.ToEdit.set_text(to)
@@ -101,7 +105,7 @@ class OutlookClient:
             email_window.type_keys("{TAB}")
             # update window
             email_window = self.app.window(title_re=f".*{re.escape(subject)}.*")
-            email_window.wait("exists", timeout=60)
+            email_window.wait("ready", timeout=60)
             email_window.child_window(class_name="_WwG").set_focus()
 
             if body:
