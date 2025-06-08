@@ -60,7 +60,8 @@ class Kohls:
                 time.sleep(2)
 
                 self.logger.info(f"Copying dispatch report to clipboard: {report_path}")
-                with ExcelClient(excel_path=report_path, logger=self.logger) as excel:
+                with ExcelClient(logger=self.logger) as excel:
+                    excel.open(report_path)
                     excel.copy_used_range()
 
                 to = self.config["mail"][plant]["to"]

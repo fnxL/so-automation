@@ -25,7 +25,8 @@ class KohlsTowel(Kohls):
             return
 
         # Run Macro
-        with ExcelClient(filled_macro_path, logger=self.logger) as excel:
+        with ExcelClient(logger=self.logger) as excel:
+            excel.open(filled_macro_path)
             excel.run_macro(self.config["macro_name"])
 
         # Get Reports

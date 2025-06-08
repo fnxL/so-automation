@@ -3,7 +3,7 @@ import time
 import os
 from datetime import datetime
 from loguru import logger
-from ..integrations.excel import get_df_from_excel, find_and_close_workbook
+from ..integrations.excel import get_df_from_excel, ExcelClient
 from ..integrations import SAPConnector
 
 
@@ -78,6 +78,7 @@ def download_dispatch_reports(macro_path: str, source_folder: str, logger=logger
             file_path = os.path.join(source_folder, file_name)
             downloaded_reports.append((plant, file_path))
             time.sleep(5)
-            find_and_close_workbook(title_contains="DispatchReport", logger=logger)
+            with ExcelClient(logger=logger) as excel:
+                excel.find_and_close_workbook(title_contains="DispatchReport")
     logger.success(f"Finished downloading {len(downloaded_reports)} dispatch reports.")
     return downloaded_reports

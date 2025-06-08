@@ -8,7 +8,14 @@ import re
 
 
 def _find_outlook_executable_path():
-    outlook_paths = [
+    possible_outlook_paths = [
+        "C:\\Program Files (x86)\\Microsoft Office\\Office16\\OUTLOOK.EXE",
+        "C:\\Program Files (x86)\\Microsoft Office\\Office15\\OUTLOOK.EXE",
+        "C:\\Program Files (x86)\\Microsoft Office\\Office14\\OUTLOOK.EXE",
+        "C:\\Program Files (x86)\\Microsoft Office\\Office13\\OUTLOOK.EXE",
+        "C:\\Program Files (x86)\\Microsoft Office\\Office12\\OUTLOOK.EXE",
+        "C:\\Program Files (x86)\\Microsoft Office\\Office11\\OUTLOOK.EXE",
+        "C:\\Program Files (x86)\\Microsoft Office\\Office10\\OUTLOOK.EXE",
         "C:\\Program Files\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE",
         "C:\\Program Files\\Microsoft Office\\root\\Office15\\OUTLOOK.EXE",
         "C:\\Program Files\\Microsoft Office\\root\\Office14\\OUTLOOK.EXE",
@@ -16,8 +23,15 @@ def _find_outlook_executable_path():
         "C:\\Program Files\\Microsoft Office\\root\\Office12\\OUTLOOK.EXE",
         "C:\\Program Files\\Microsoft Office\\root\\Office11\\OUTLOOK.EXE",
         "C:\\Program Files\\Microsoft Office\\root\\Office10\\OUTLOOK.EXE",
+        "C:\\Program Files (x86)\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE",
+        "C:\\Program Files (x86)\\Microsoft Office\\root\\Office15\\OUTLOOK.EXE",
+        "C:\\Program Files (x86)\\Microsoft Office\\root\\Office14\\OUTLOOK.EXE",
+        "C:\\Program Files (x86)\\Microsoft Office\\root\\Office13\\OUTLOOK.EXE",
+        "C:\\Program Files (x86)\\Microsoft Office\\root\\Office12\\OUTLOOK.EXE",
+        "C:\\Program Files (x86)\\Microsoft Office\\root\\Office11\\OUTLOOK.EXE",
+        "C:\\Program Files (x86)\\Microsoft Office\\root\\Office10\\OUTLOOK.EXE",
     ]
-    for path in outlook_paths:
+    for path in possible_outlook_paths:
         if os.path.exists(path):
             return path
 
@@ -29,7 +43,7 @@ class OutlookClient:
     Usage:
     ```python
         try:
-            with OutlookUiAutomator() as outlook:
+            with OutlookClient() as outlook:
                 outlook.create_draft_mail(to="test@example.com", subject="UI Test")
         except Exception as e:
             logger.error(f"Outlook UI automation failed: {e}")
@@ -75,8 +89,6 @@ class OutlookClient:
         self.logger.info("Creating a new draft email.")
         self.main_window.set_focus()
         send_keys("^n")
-        time.sleep(2)
-
         try:
             email_window = self.app.window(title_re=".*Untitled - Message.*")
             email_window.wait("exists", timeout=60)
@@ -84,7 +96,7 @@ class OutlookClient:
             email_window.set_focus()
             email_window.ToEdit.set_text(to)
             email_window.CcEdit.set_text(cc)
-            email_window.SubjectEdit.set_focus()
+            email_window.SubjectEdit.click_input()
             email_window.SubjectEdit.set_text(subject)
             email_window.type_keys("{TAB}")
             # update window
@@ -96,10 +108,11 @@ class OutlookClient:
                 email_window.type_keys(body, with_spaces=True, with_newlines=True)
 
             if paste_from_clipboard:
-                email_window.type_keys("{ENTER 2}^v")
+                email_window.type_keys("{ENTER}{ENTER}^v")
 
             self.logger.info("Saving and closing draft email window...")
             email_window.type_keys("^s")
+            time.sleep(2)
             email_window.close()
             self.logger.info("Draft email created and saved.")
         except Exception as e:
