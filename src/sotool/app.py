@@ -1,6 +1,6 @@
 from .config import config
 from loguru import logger
-from .workflows.kohls import KohlsTowel
+from .workflows.kohls import KohlsTowel, KohlsRugs
 import time
 import os
 
@@ -59,6 +59,12 @@ def run_automation(
     match automation_name.lower():
         case "kohls_towel":
             KohlsTowel(
+                config=customer_config,
+                source_folder=source_folder,
+                logger=logger,
+            ).start(stop_after_create_macro=stop_after_create_macro)
+        case "kohls_rugs":
+            KohlsRugs(
                 config=customer_config,
                 source_folder=source_folder,
                 logger=logger,

@@ -1,11 +1,13 @@
 from loguru import logger
-from ...integrations.excel import get_df_from_excel, format_number, apply_borders
+from ...integrations.excel import get_df_from_excel, format_number
 from ...integrations import ExcelClient, OutlookClient
 from openpyxl import load_workbook
 from typing import List, Tuple
 from .pdf_parser import parse_po_metadata, parse_po_line_items
 from .po_data import POData
 from .check_po_so import check_po_so
+from sotool.utils import get_pdf_files_in_path
+from ..sap_dispatch_report import download_dispatch_reports
 import os
 import time
 
@@ -20,19 +22,52 @@ class Kohls:
         self.config = config
         self.logger = logger
         self.source_folder = source_folder
-        self.load_config()
+        self._load_config()
 
         self.macro_wb = None
         self.macro_ws = None
         self.mastersheet_df = None
         self.pis_df = None
 
-    def load_config(self):
+    def _load_config(self):
         self._macro_path = self.config["macro_path"]
         self._mastersheet_path = self.config["mastersheet_path"]
         self._notify_address = self.config["notify_address"]
         self._design_split = self.config["design_split"]
         self._source_folder_cell = self.config["source_folder_cell"]
+
+    def start(self, stop_after_create_macro: bool = False):
+        pdf_files = get_pdf_files_in_path(self.source_folder)
+
+        if not pdf_files:
+            self.logger.error("No PDF files found in the source folder.")
+            raise FileNotFoundError("No PDF files found in the source folder.")
+
+        self.logger.info(f"Found {len(pdf_files)} PO files to process")
+
+        for pdf_file in pdf_files:
+            self._process_single_po(pdf_file)
+
+        filled_macro_path = self._finalize_macro_file()
+
+        if stop_after_create_macro:
+            self.logger.success("Macro file created successfully. Stopping here.")
+            return
+
+        # Run Macro
+        with ExcelClient(logger=self.logger, visible=False) as excel:
+            excel.open(filled_macro_path)
+            excel.run_macro(self.config["macro_name"])
+
+        # Get Reports
+        reports = download_dispatch_reports(
+            macro_path=filled_macro_path,
+            source_folder=self.source_folder,
+            logger=self.logger,
+        )
+        # Create Mails
+        self._create_draft_mails(reports)
+        return True
 
     def _create_draft_mails(self, reports):
         with OutlookClient(self.logger) as outlook:

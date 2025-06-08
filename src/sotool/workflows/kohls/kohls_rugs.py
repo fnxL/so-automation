@@ -1,9 +1,25 @@
 from .kohls import Kohls, POData
 
 
-class KohlsTowel(Kohls):
+class KohlsRugs(Kohls):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def _get_pis_data(self, mastersheet_row, po_data):
+        sales_unit = mastersheet_row["sales unit"]
+        program_name = mastersheet_row["program name"]
+        packing_type = po_data.packing_type
+        filtered_pis = self.pis_df[
+            (self.pis_df["program name"] == program_name)
+            & (self.pis_df["sales unit"] == sales_unit)
+            & (self.pis_df["packing type"] == packing_type)
+        ]
+        return {
+            "pis": filtered_pis.iloc[0]["pis"] if not filtered_pis.empty else "N/A",
+            "product_pac_type": filtered_pis.iloc[0]["product pac type"]
+            if not filtered_pis.empty
+            else "N/A",
+        }
 
     def _create_macro_row(
         self,
@@ -12,15 +28,7 @@ class KohlsTowel(Kohls):
         upc,
         mastersheet_row,
     ):
-        ship_month = po_data.ship_start_date.month
         pis_data = self._get_pis_data(mastersheet_row, po_data)
-        s_part = self._get_s_part(
-            plant=mastersheet_row["plant"],
-            packing_type=po_data.packing_type,
-            sales_unit=mastersheet_row["sales unit"],
-            ship_month=ship_month,
-        )
-
         # Adjust PO if design split is applicable
         new_po = self._get_adjusted_po(
             po_data.po, str(mastersheet_row["design"]).lower().strip()
@@ -33,7 +41,7 @@ class KohlsTowel(Kohls):
             102083,  # SHIP TO PARTY
             "W137",  # PAYMENT TERM
             "",  # INCO TERMS
-            "JNPT / MUNDRA",  # INCO TERM 2
+            "",  # INCO TERM 2
             "",  # order reason
             100023,  # end customer
             po_data.channel_type,
@@ -48,20 +56,19 @@ class KohlsTowel(Kohls):
             mastersheet_row["material number"],  # matcode,
             qty,  # order qty
             "",  # amount
-            mastersheet_row["sort number"],  # TT sort no
-            mastersheet_row["shade name"],  # TT shade
-            mastersheet_row["set type"],  # TT set
-            "",  # Embroidery code L
-            "",  # sublistatic code
-            s_part,  # TT packing type for S part
-            pis_data["f_part"],  # TT packing type for F part
-            "NA",  # Destination
-            mastersheet_row["yarn dyed matching"],  # yarn dyed
+            mastersheet_row["sort number"],  # Rugs Sort No.
+            mastersheet_row["shade name"],  # Shade No - /Washin
+            mastersheet_row["printing shade no"],  # Printing Shade No
+            "",  # product packing style
+            pis_data["product_pac_type"],
+            "",  # Production type
+            mastersheet_row["set type"],  # SET-NO
+            mastersheet_row["yarn dyed matching"],  # shade number - yd
+            "NA",  # destination
             mastersheet_row["plant"],  # plant
             upc,  # customer material
             pis_data["pis"],  # PIS
             "",  # PO AVAIL DATE
-            "Saluja Tirkey",
             po_data.notify,
             po_data.po,  # PO file name
             "pdf",  # PO file format
