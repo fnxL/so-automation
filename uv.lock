@@ -559,12 +559,6 @@ dependencies = [
     { name = "ttkbootstrap" },
 ]
 
-[package.optional-dependencies]
-test = [
-    { name = "pytest" },
-    { name = "pytest-mock" },
-]
-
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
@@ -578,13 +572,10 @@ requires-dist = [
     { name = "pandas", extras = ["excel"], specifier = ">=2.2.3" },
     { name = "pdfplumber", specifier = "==0.11.5" },
     { name = "pyinstaller", specifier = ">=6.13.0" },
-    { name = "pytest", marker = "extra == 'test'" },
-    { name = "pytest-mock", marker = "extra == 'test'" },
     { name = "pywin32", specifier = ">=310" },
     { name = "pywinauto", specifier = ">=0.6.9" },
     { name = "ttkbootstrap", specifier = ">=1.13.8" },
 ]
-provides-extras = ["test"]
 
 [package.metadata.requires-dev]
 dev = [
