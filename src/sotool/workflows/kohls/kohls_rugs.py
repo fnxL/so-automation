@@ -1,11 +1,18 @@
 from .kohls import Kohls, POData
 
+from ...integrations.excel import get_df_from_excel
+
 
 class KohlsRugs(Kohls):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def _get_pis_data(self, mastersheet_row, po_data):
+        if self.pis_df is None:
+            self.pis_df = get_df_from_excel(
+                path=self._mastersheet_path, sheet_name="PIS"
+            )
+
         sales_unit = mastersheet_row["sales unit"]
         program_name = mastersheet_row["program name"]
         packing_type = po_data.packing_type
