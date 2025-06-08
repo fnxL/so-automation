@@ -1,0 +1,103 @@
+from sotool.integrations.excel import get_df_from_excel
+from loguru import logger
+from sotool.integrations.excel import apply_borders, format_number
+from sotool.workflows.kohls.pdf_parser import parse_po_metadata, get_total_qty_and_value
+from openpyxl import load_workbook
+from openpyxl.styles import Alignment, PatternFill
+
+import os
+
+
+def check_po_so(report_path, source_folder, logger=logger):
+    report_df = get_df_from_excel(path=report_path, sheet_name=0)
+    report_df = report_df.rename(columns={"destination": "packing"})
+
+    if "cbm" in report_df.columns:
+        report_df = report_df.drop(columns=["cbm"])
+
+    report_df["remarks"] = ""
+
+    df = report_df.groupby("buyer po no")
+    for po, group in df:
+        so_order_qty = group["so order qty"].sum()
+        so_value = group["so value"].sum()
+        po = int(po)
+        po_path = os.path.join(source_folder, f"{po}.pdf")
+
+        # Update packing
+        po_metadata = parse_po_metadata(po_path)
+        report_df.loc[group.index, "packing"] = po_metadata.packing_type
+        po_total_value = get_total_qty_and_value(po_path)
+        po_total_qty = po_total_value["total_qty"]
+        po_total_order_value = po_total_value["order_value"]
+
+        # Check if quantities match
+        qty_match = int(so_order_qty) == po_total_qty
+
+        # Check if values match (using a small tolerance for floating point comparison)
+        value_match = so_value == po_total_order_value
+
+        # Update remarks for all rows in this PO group
+        if not qty_match and not value_match:
+            report_df.loc[group.index, "remarks"] = "Qty and Value not matching"
+        elif not qty_match:
+            report_df.loc[group.index, "remarks"] = "Qty not matching"
+        elif not value_match:
+            report_df.loc[group.index, "remarks"] = "Value not matching"
+        else:
+            report_df.loc[group.index, "remarks"] = "Qty and Value Match"
+
+        logger.info(f"PO: {po}, Qty Match: {qty_match}, Value Match: {value_match}")
+
+    report_df.columns = [col.title() for col in report_df.columns]
+
+    file_name = os.path.basename(report_path)
+    output_path = os.path.join(source_folder, f"OK_{file_name}")
+    report_df.to_excel(output_path, index=False)
+    format_excel(output_path)
+    return output_path
+
+
+def format_excel(file_path):
+    wb = load_workbook(filename=file_path)
+    ws = wb.active
+    max_row = ws.max_row
+    max_col = ws.max_column
+
+    apply_borders(ws)
+    format_number(ws, startcol=10, endcol=11, format="DD-MM-YYYY")
+
+    header_fill = PatternFill(
+        start_color="c0c0c0", end_color="c0c0c0", fill_type="solid"
+    )
+    for col in range(1, max_col + 1):
+        cell = ws.cell(row=1, column=col)
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    yellow_fill = PatternFill(
+        start_color="FFFF00", end_color="FFFF00", fill_type="solid"
+    )
+    for col in range(1, max_col + 1):
+        cell = ws.cell(row=max_row, column=col)
+        cell.fill = yellow_fill
+
+    # comma separated values
+    format_number(ws, startcol=4, endcol=8, format="#,##0.00")
+
+    # adjust column widths
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter  # Get column letter
+
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except Exception as e:
+                pass
+
+        adjusted_width = max_length + 2
+        ws.column_dimensions[column].width = min(adjusted_width, 30)
+
+    wb.save(file_path)

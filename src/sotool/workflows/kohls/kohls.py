@@ -1,25 +1,13 @@
 from loguru import logger
 from ...integrations.excel import get_df_from_excel, format_number, apply_borders
-from ...integrations.pdf_parser import process_pdf
 from ...integrations import ExcelClient, OutlookClient
 from openpyxl import load_workbook
-from datetime import datetime
-from dataclasses import dataclass
 from typing import List, Tuple
+from .pdf_parser import parse_po_metadata, parse_po_line_items
+from .po_data import POData
+from .check_po_so import check_po_so
 import os
 import time
-
-
-@dataclass
-class POData:
-    po: int | str
-    port_of_shipment: str
-    channel_type: str
-    sub_channel_type: str
-    ship_start_date: datetime
-    ship_end_date: datetime
-    packing_type: str
-    notify: str
 
 
 class Kohls:
@@ -52,16 +40,19 @@ class Kohls:
                 plant = str(report[0])
                 report_path = report[1]
 
-                # apply borders first
-                wb = load_workbook(filename=report_path)
-                ws = wb.active
-                apply_borders(ws)
-                wb.save(report_path)
-                time.sleep(2)
+                # Check PO-SO values
+                ok_report_path = check_po_so(
+                    report_path=report_path,
+                    source_folder=self.source_folder,
+                    logger=self.logger,
+                )
+                time.sleep(1)
 
-                self.logger.info(f"Copying dispatch report to clipboard: {report_path}")
+                self.logger.info(
+                    f"Copying dispatch report to clipboard: {ok_report_path}"
+                )
                 with ExcelClient(logger=self.logger) as excel:
-                    excel.open(report_path)
+                    excel.open(ok_report_path)
                     excel.copy_used_range()
 
                 to = self.config["mail"][plant]["to"]
@@ -73,12 +64,6 @@ class Kohls:
                     to, cc, subject, body, paste_from_clipboard=True
                 )
 
-    def _get_pdf_files(self, path: str):
-        return [f for f in os.listdir(path) if f.lower().endswith(".pdf")]
-
-    def _parse_ship_date(self, date_str: str):
-        return datetime.fromisoformat(date_str)
-
     def _get_mastersheet_row(self, upc):
         if self.mastersheet_df is None:
             self.mastersheet_df = get_df_from_excel(path=self._mastersheet_path)
@@ -88,30 +73,6 @@ class Kohls:
             self.logger.error(f"No mastersheet row found for UPC: {upc}")
             raise ValueError(f"No mastersheet row found for UPC: {upc}")
         return result.iloc[0]
-
-    def _parse_po_metadata(self, po_metadata: dict) -> POData:
-        ship_start_date = self._parse_ship_date(po_metadata["ship_start_date"])
-        ship_end_date = self._parse_ship_date(po_metadata["ship_end_date"])
-        sub_channel_type = (
-            "PURE PLAY ECOM" if po_metadata["channel_type"] == "ECOM" else "NIL"
-        )
-        packing_type = "BULK" if po_metadata["channel_type"] == "RETAIL" else "ECOM"
-        notify = (
-            self.config["notify_address"]
-            if "notify" in po_metadata
-            else "2% commission to WUSA"
-        )
-
-        return POData(
-            po=po_metadata["po"],
-            port_of_shipment=po_metadata["port_of_shipment"],
-            channel_type=po_metadata["channel_type"],
-            ship_start_date=ship_start_date,
-            ship_end_date=ship_end_date,
-            sub_channel_type=sub_channel_type,
-            packing_type=packing_type,
-            notify=notify,
-        )
 
     def _prepare_row_data(self, po_data: POData, line_items: List[Tuple]):
         row_data = {}
@@ -186,8 +147,8 @@ class Kohls:
         pdf_path = os.path.join(self.source_folder, pdf_file)
         self.logger.info(f"Processing PDF: {pdf_file}")
 
-        po_metadata, line_items = process_pdf(pdf_path=pdf_path)
-        po_data = self._parse_po_metadata(po_metadata)
+        line_items = parse_po_line_items(pdf_path)
+        po_data = parse_po_metadata(pdf_path)
         row_data = self._prepare_row_data(po_data, line_items)
         self.logger.info("Parsed PO File")
         self.logger.info("Writing data to macro worksheet...")

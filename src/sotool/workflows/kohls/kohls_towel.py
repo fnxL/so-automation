@@ -1,6 +1,7 @@
 from .kohls import Kohls, POData
 from ...integrations import ExcelClient
 from ..sap_dispatch_report import download_dispatch_reports
+from sotool.utils import get_pdf_files_in_path
 
 
 class KohlsTowel(Kohls):
@@ -8,7 +9,8 @@ class KohlsTowel(Kohls):
         super().__init__(*args, **kwargs)
 
     def start(self, stop_after_create_macro: bool = False):
-        pdf_files = self._get_pdf_files(self.source_folder)
+        pdf_files = get_pdf_files_in_path(self.source_folder)
+
         if not pdf_files:
             self.logger.error("No PDF files found in the source folder.")
             raise FileNotFoundError("No PDF files found in the source folder.")
