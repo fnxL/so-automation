@@ -7,7 +7,7 @@ from ..integrations.excel import get_df_from_excel, ExcelClient
 from ..integrations import SAPConnector
 
 
-def _copy_list_to_clipboard(self, so_list):
+def _copy_list_to_clipboard(so_list):
     text = "\r\n".join(map(str, so_list))
     try:
         win32clipboard.OpenClipboard()
