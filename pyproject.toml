@@ -18,12 +18,6 @@ dependencies = [
     "ttkbootstrap>=1.13.8",
 ]
 
-[project.optional-dependencies]
-test = [
-    "pytest",
-    "pytest-mock", # Crucial for mocking external systems
-]
-
 [project.scripts]
 sotool = "sotool:main"
 
@@ -33,4 +27,10 @@ build-backend = "hatchling.build"
 
 [tool.ruff]
 indent-width = 4
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-mock>=3.14.1",
+]
 

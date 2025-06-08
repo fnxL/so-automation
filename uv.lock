@@ -565,6 +565,12 @@ test = [
     { name = "pytest-mock" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-mock" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "loguru", specifier = ">=0.7.3" },
@@ -579,6 +585,12 @@ requires-dist = [
     { name = "ttkbootstrap", specifier = ">=1.13.8" },
 ]
 provides-extras = ["test"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.4.0" },
+    { name = "pytest-mock", specifier = ">=3.14.1" },
+]
 
 [[package]]
 name = "ttkbootstrap"
