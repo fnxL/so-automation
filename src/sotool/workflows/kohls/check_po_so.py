@@ -17,7 +17,16 @@ def check_po_so(report_path, source_folder, logger=logger):
 
     report_df["remarks"] = ""
 
-    df = report_df.groupby("buyer po no")
+    def split_po(x):
+        if isinstance(x, str):
+            po = int(x.split()[0])
+            return po
+        return x
+
+    # temp column for clean po number
+    report_df["po_number_clean"] = report_df["buyer po no"].apply(func=split_po)
+    df = report_df.groupby("po_number_clean")
+
     for po, group in df:
         so_order_qty = group["so order qty"].sum()
         so_value = group["so value"].sum()
@@ -52,6 +61,8 @@ def check_po_so(report_path, source_folder, logger=logger):
             report_df.loc[group.index, "remarks"] = "Qty and Value Match"
 
         logger.info(f"PO: {po}, Qty Match: {qty_match}, Value Match: {value_match}")
+
+    report_df = report_df.drop(columns=["po_number_clean"])
 
     report_df.columns = [col.title() for col in report_df.columns]
 
@@ -103,5 +114,14 @@ def format_excel(file_path):
 
         adjusted_width = max_length + 2
         ws.column_dimensions[column].width = min(adjusted_width, 30)
+
+        # highlight remarks col
+        ErrorFill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+        for col in ws.iter_cols(min_col=13, max_col=13):
+            for cell in col:
+                if cell.value is None:
+                    continue
+                if "not" in cell.value.lower():
+                    cell.fill = ErrorFill
 
     wb.save(file_path)
