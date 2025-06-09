@@ -21,6 +21,10 @@ def check_po_so(report_path, source_folder, logger=logger):
     for po, group in df:
         so_order_qty = group["so order qty"].sum()
         so_value = group["so value"].sum()
+
+        if isinstance(po, str):
+            po = po.split(" ")[0]
+
         po = int(po)
         po_path = os.path.join(source_folder, f"{po}.pdf")
 

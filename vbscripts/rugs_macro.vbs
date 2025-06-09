@@ -14,11 +14,11 @@ Private Const KEY_CTRL_S As Integer = 3 ' Ctrl+S = Save
 
 
 ' Constants
-Private Const CONFIG_ORDER_TYPE As String = "AP4"
-Private Const CONFIG_SALES_ORG As String = "AP5"
-Private Const CONFIG_DIST_CHANNEL As String = "AP6"
+Private Const CONFIG_ORDER_TYPE As String = "AO4"
+Private Const CONFIG_SALES_ORG As String = "AO5"
+Private Const CONFIG_DIST_CHANNEL As String = "AO6"
 Private Const SAP_DIVISION As String = "00"
-Private Const CONFIG_ATTACH_PATH As String = "AK1"
+Private Const CONFIG_ATTACH_PATH As String = "AJ1"
 Private Const CONFIG_STAKE_HOLDER As String = "AH1"
 
 ' Column Constants
@@ -27,6 +27,7 @@ Private Const COL_SO_NUMBER As Integer = 2
 Private Const COL_SOLD_TO As Integer = 3
 Private Const COL_SHIP_TO As Integer = 4
 Private Const COL_PAYMENT_TERM As Integer = 5
+Private Const COL_INCOTERM_2 As Integer = 7
 Private Const COL_END_CUSTOMER As Integer = 9
 Private Const COL_CHANNEL_TYPE As Integer = 10
 Private Const COL_SUB_CHANNEL_TYPE As Integer = 11
@@ -96,7 +97,7 @@ End Sub
 Private Sub CreateNewSaleOrder(ByVal headerRow as Long)
     ' Create SO (va01)
     session.findById("wnd[0]/tbar[0]/okcd").Text = "/nva01"
-    Call FillInitalOrgData
+    Call FillInitalOrgData()
 
     ' Overview Screen
     session.findById("wnd[0]/usr/subSUBSCREEN_HEADER:SAPMV45A:4021/txtVBKD-BSTKD").text = ws.Cells(headerRow, COL_PO_NUMBER).Value
