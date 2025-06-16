@@ -9,9 +9,14 @@ import os
 
 
 def check_po_so(report_path, source_folder, logger=logger):
-    report_df = get_df_from_excel(path=report_path, sheet_name=0)
+    report_df = get_df_from_excel(
+        path=report_path, sheet_name=0, dtype={"First Pis number": str}
+    )
     report_df = report_df.rename(columns={"destination": "packing"})
     if "first pis number" in report_df.columns:
+        report_df["first pis number"] = (
+            report_df["first pis number"].astype(str).str.lstrip("0")
+        )
         report_df["first pis number"] = pd.to_numeric(
             report_df["first pis number"], errors="coerce"
         ).astype("Int64")
@@ -35,8 +40,8 @@ def check_po_so(report_path, source_folder, logger=logger):
     df = grouping_df.groupby("po_number_clean")
 
     for po, group in df:
-        so_order_qty = group["so order qty"].sum()
-        so_value = group["so value"].sum()
+        so_order_qty = round(group["so order qty"].sum(), 2)
+        so_value = round(group["so value"].sum(), 2)
 
         if isinstance(po, str):
             po = po.split(" ")[0]
