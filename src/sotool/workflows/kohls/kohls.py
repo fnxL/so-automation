@@ -101,7 +101,7 @@ class Kohls:
 
     def _get_mastersheet_row(self, upc):
         if self.mastersheet_df is None:
-            self.mastersheet_df = get_df_from_excel(path=self._mastersheet_path)
+            self.mastersheet_df = get_df_from_excel(path=self._mastersheet_path, keep_default_na=False, na_values=[])
 
         result = self.mastersheet_df.query(f"upc=={upc}")
         if result.empty:
