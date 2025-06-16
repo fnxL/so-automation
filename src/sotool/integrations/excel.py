@@ -180,3 +180,11 @@ def apply_borders(ws: Worksheet, text_center=False):
             if text_center:
                 cell.alignment = text_center
     return
+
+def adjust_column_widths(ws: Worksheet, adjustment_factor: float = 1.05):
+    for column in ws.columns:
+        max_length = max(len(str(cell.value)) for cell in column)
+        column_letter = column[0].column_letter
+        ws.column_dimensions[column_letter].width = (max_length + 2) * adjustment_factor
+
+    return

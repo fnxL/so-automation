@@ -1,6 +1,6 @@
 from sotool.integrations.excel import get_df_from_excel
 from loguru import logger
-from sotool.integrations.excel import apply_borders, format_number
+from sotool.integrations.excel import apply_borders, format_number, adjust_column_widths
 from sotool.workflows.kohls.pdf_parser import parse_po_metadata, get_total_qty_and_value
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment, PatternFill
@@ -106,12 +106,7 @@ def format_excel(file_path):
 
     # comma separated values
     format_number(ws, startcol=4, endcol=8, format="#,##0.00")
-    # adjust column widths
-    adjustment_factor = 1.05
-    for column in ws.columns:
-        max_length = max(len(str(cell.value)) for cell in column)
-        column_letter = column[0].column_letter
-        ws.column_dimensions[column_letter].width = (max_length + 2) * adjustment_factor
+    adjust_column_widths(ws)
 
     # highlight remarks col
     ErrorFill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
