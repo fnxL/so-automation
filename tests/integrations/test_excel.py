@@ -8,7 +8,7 @@ test_macro_path = os.path.abspath("tests/files/test_macro.xlsm")
 
 @pytest.fixture
 def excel_client():
-    with ExcelClient(visible=False) as excel:
+    with ExcelClient(visible=True) as excel:
         yield excel
 
 

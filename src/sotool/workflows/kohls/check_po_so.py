@@ -4,13 +4,17 @@ from sotool.integrations.excel import apply_borders, format_number
 from sotool.workflows.kohls.pdf_parser import parse_po_metadata, get_total_qty_and_value
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment, PatternFill
-
+import pandas as pd
 import os
 
 
 def check_po_so(report_path, source_folder, logger=logger):
     report_df = get_df_from_excel(path=report_path, sheet_name=0)
     report_df = report_df.rename(columns={"destination": "packing"})
+    if "first pis number" in report_df.columns:
+        report_df["first pis number"] = pd.to_numeric(
+            report_df["first pis number"], errors="coerce"
+        ).astype("Int64")
 
     if "cbm" in report_df.columns:
         report_df = report_df.drop(columns=["cbm"])
@@ -25,7 +29,10 @@ def check_po_so(report_path, source_folder, logger=logger):
 
     # temp column for clean po number
     report_df["po_number_clean"] = report_df["buyer po no"].apply(func=split_po)
-    df = report_df.groupby("po_number_clean")
+
+    # ignore last row for grouping
+    grouping_df = report_df.iloc[:-1]
+    df = grouping_df.groupby("po_number_clean")
 
     for po, group in df:
         so_order_qty = group["so order qty"].sum()
@@ -44,10 +51,7 @@ def check_po_so(report_path, source_folder, logger=logger):
         po_total_qty = po_total_value["total_qty"]
         po_total_order_value = po_total_value["order_value"]
 
-        # Check if quantities match
         qty_match = int(so_order_qty) == po_total_qty
-
-        # Check if values match (using a small tolerance for floating point comparison)
         value_match = so_value == po_total_order_value
 
         # Update remarks for all rows in this PO group
@@ -63,9 +67,7 @@ def check_po_so(report_path, source_folder, logger=logger):
         logger.info(f"PO: {po}, Qty Match: {qty_match}, Value Match: {value_match}")
 
     report_df = report_df.drop(columns=["po_number_clean"])
-
     report_df.columns = [col.title() for col in report_df.columns]
-
     file_name = os.path.basename(report_path)
     output_path = os.path.join(source_folder, f"OK_{file_name}")
     report_df.to_excel(output_path, index=False)
@@ -99,29 +101,20 @@ def format_excel(file_path):
 
     # comma separated values
     format_number(ws, startcol=4, endcol=8, format="#,##0.00")
-
     # adjust column widths
-    for col in ws.columns:
-        max_length = 0
-        column = col[0].column_letter  # Get column letter
+    adjustment_factor = 1.05
+    for column in ws.columns:
+        max_length = max(len(str(cell.value)) for cell in column)
+        column_letter = column[0].column_letter
+        ws.column_dimensions[column_letter].width = (max_length + 2) * adjustment_factor
 
+    # highlight remarks col
+    ErrorFill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+    for col in ws.iter_cols(min_col=13, max_col=13):
         for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))
-            except Exception as e:
-                pass
-
-        adjusted_width = max_length + 2
-        ws.column_dimensions[column].width = min(adjusted_width, 30)
-
-        # highlight remarks col
-        ErrorFill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-        for col in ws.iter_cols(min_col=13, max_col=13):
-            for cell in col:
-                if cell.value is None:
-                    continue
-                if "not" in cell.value.lower():
-                    cell.fill = ErrorFill
+            if cell.value is None:
+                continue
+            if "not" in cell.value.lower():
+                cell.fill = ErrorFill
 
     wb.save(file_path)
