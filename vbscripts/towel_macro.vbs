@@ -26,6 +26,7 @@ Private Const COL_SO_NUMBER As Integer = 2
 Private Const COL_SOLD_TO As Integer = 3
 Private Const COL_SHIP_TO As Integer = 4
 Private Const COL_PAYMENT_TERM As Integer = 5
+Private Const COL_INCOTERM As Integer = 6
 Private Const COL_NOTIFY As Integer = 36
 Private Const COL_INCOTERM_2 As Integer = 7
 Private Const COL_END_CUSTOMER As Integer = 9
@@ -57,7 +58,7 @@ Private Const COL_PO_FILENAME As Integer = 37
 Private Const COL_PO_FORMAT As Integer = 38
 
 ' Main Procedure
-Public Sub CreateTowelSalesOrders()
+Public Sub TowelSalesOrders()
     Dim lastRow As Long
     Dim currentRow As Long
     Dim headerRow As Long
@@ -170,23 +171,8 @@ Private Sub CreateNewSaleOrder(ByVal headerRow as Long)
     linesInCurrentOrder = lineItemCounter
     session.findById("wnd[0]").sendVKey KEY_ENTER
 
-    ' PIS
-    ' Select All Button
-    session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/subSUBSCREEN_BUTTONS:SAPMV45A:4050/btnBT_MKAL").press
-    ' Extras Menu
-    session.findById("wnd[0]/mbar/menu[3]/menu[10]").Select
-    session.findById("wnd[1]/usr/tblSAPLCVOBTCTRL_DOKUMENTE/ctxtDRAW-DOKAR[0,0]").text = "PIS"
-    session.findById("wnd[1]/usr/tblSAPLCVOBTCTRL_DOKUMENTE/ctxtDRAW-DOKNR[1,0]").text = ws.Cells(headerRow, COL_PIS).Value
-    session.findById("wnd[1]").sendVKey KEY_ENTER
-
-    ' Press Enter
-    Dim i As Long
-    For i = 0 To linesInCurrentOrder - 1
-        session.findById("wnd[1]/tbar[0]/btn[0]").press
-    Next i
-
-    ' Save Sales Document
-    session.findById("wnd[0]/tbar[0]/btn[11]").press
+    Call AttachPIS(headerRow)
+    Call HitEnter(linesInCurrentOrder)
 
     Dim statusBarMessage As String
     statusBarMessage = session.findById("wnd[0]/sbar").Text
@@ -206,6 +192,28 @@ Private Sub CreateNewSaleOrder(ByVal headerRow as Long)
             CStr(ws.Cells(headerRow, COL_PO_FILENAME).Value), _
             CStr(ws.Cells(headerRow, COL_PO_FORMAT).Value)
     End If
+End Sub
+
+Private Sub AttachPIS(ByVal headerRow As Long)
+    ' Just save if no PIS
+    If Trim(ws.Cells(headerRow, COL_PIS).Value) = "" Then
+        session.findById("wnd[0]/tbar[0]/btn[11]").press
+        Exit Sub
+    End If
+    ' Select All Button
+    session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\08/ssubSUBSCREEN_BODY:SAPMV45A:7901/subSUBSCREEN_TC:SAPMV45A:7905/subSUBSCREEN_BUTTONS:SAPMV45A:4050/btnBT_MKAL").press
+    ' Extras Menu
+    session.findById("wnd[0]/mbar/menu[3]/menu[10]").Select
+    session.findById("wnd[1]/usr/tblSAPLCVOBTCTRL_DOKUMENTE/ctxtDRAW-DOKAR[0,0]").text = "PIS"
+    session.findById("wnd[1]/usr/tblSAPLCVOBTCTRL_DOKUMENTE/ctxtDRAW-DOKNR[1,0]").text = ws.Cells(headerRow, COL_PIS).Value
+    session.findById("wnd[1]").sendVKey KEY_ENTER
+End Sub
+
+Private Sub HitEnter(ByVal linesInCurrentOrder As Long)
+    Dim i As Long
+    For i = 0 To linesInCurrentOrder - 1
+        session.findById("wnd[1]/tbar[0]/btn[0]").press
+    Next i
 End Sub
 
 Private Sub AttachFile(ByVal SONumber As String, ByVal filePath As String, ByVal fileName As String, ByVal fileExtension As String)
