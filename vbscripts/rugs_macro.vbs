@@ -169,6 +169,9 @@ Private Sub CreateNewSaleOrder(ByVal headerRow as Long)
     Call AttachPIS(headerRow)
     Call HitEnter(linesInCurrentOrder)
 
+    ' Save Sales Document
+    session.findById("wnd[0]/tbar[0]/btn[11]").press
+
     Dim statusBarMessage As String
     statusBarMessage = session.findById("wnd[0]/sbar").Text
     savedSONumber = Split(statusBarMessage, " ")(3)
